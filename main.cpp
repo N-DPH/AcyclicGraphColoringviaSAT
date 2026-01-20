@@ -11,6 +11,7 @@
 #include <cassert>
 #include <vector>
 #include <cstdlib>
+#include <queue>
 
 void write_colour_sat(Graph::Graph &G, int k){
 	std::ofstream SAT("sat_inst.cnf");
@@ -85,13 +86,64 @@ std::vector<int> read_sol(Graph::Graph &G, int k){
 }
 
 std::vector<int> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
-	//still need to work this part out
-	return std::vector<int>(0);
+	std::set<std::pair<int,int>> existing_pairs;
+	std::vector<Graph::VertexType> edges = G.elist();
+	std::vector<int> cycle = std::vector<int>(0);
+	Graph::NeighborList neighbors = G.get_neighbor_list();
+	for(int i=0; i<G.ecount();i++){
+		int lower_colour = std::min(colour[edges[2*i]],colour[edges[2*i+1]]);
+		int higher_colour = std::max(colour[edges[2*i]],colour[edges[2*i+1]]);
+		existing_pairs.emplace(std::make_pair(lower_colour,higher_colour));
+	}
+	for(std::pair<int,int> p : existing_pairs){
+		std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
+		std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
+		for(int i=0;i<G.ncount();i++){
+			if(visited[i]==false && (colour[i]==p.first || colour[i]==p.second)){
+				std::queue<int> q;
+				q.push(i);
+				while(!q.empty()){
+					int v = q.front();
+					q.pop();
+					for(auto w : neighbors[v]){
+						if(w != parent[v] && visited[w]==true && (colour[w]==p.first || colour[w]==p.second)){
+							cycle.push_back(w);
+							cycle.push_back(v);
+							w=parent[w];
+							cycle.push_back(w);
+							w = parent[w];
+							v=parent[v];
+							while(w != v){
+								cycle.push_back(v);
+								cycle.push_back(w);
+								w = parent[w];
+								v=parent[v];
+							}
+							cycle.push_back(v);
+							return cycle;//should work because we only have even cycles
+						}
+						if(w != parent[v] && (colour[w]==p.first || colour[w]==p.second)){
+							visited[w]=true;
+							parent[w]=v;
+							q.push(w);
+						}
+					}
+				}
+			}
+			else{visited[i]=true;}
+		}
+	}
+	return cycle;
 }
 
 bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour){
 	std::vector<int> cycle = find_cycle(G,k,colour);
-	//todo: adapt the sat_inst to forbid the cycle
+	if(cycle.empty()){return true;} //no cycle found
+	else{
+		for(auto v : cycle){std::cout<<v<<" ";}
+		std::cout<<std::endl;
+		return true;
+	}//todo: adapt the sat_inst to forbid the cycle
 }
 
 int main(int argc, char *argv[]) {
