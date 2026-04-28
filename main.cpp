@@ -139,11 +139,39 @@ std::vector<int> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
 bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour){
 	std::vector<int> cycle = find_cycle(G,k,colour);
 	if(cycle.empty()){return true;} //no cycle found
-	else{
-		for(auto v : cycle){std::cout<<v<<" ";}
-		std::cout<<std::endl;
-		return true;
-	}//todo: adapt the sat_inst to forbid the cycle
+	int i=0;
+	std::ofstream SAT("sat_inst.cnf",std::ios::app);
+	for(int j=0;j<k;j++){ //adding the constraints forbidding any colour permutation of that cycle
+		for(int l=0;l<k;l++){
+			if(l!=j){
+				SAT<<-(cycle[0]*k+1)-j<<" ";
+				for(int a=1;a<cycle.size()/2;a++){
+					if(a%2==1){
+						SAT<<-(cycle[2*a]*k+1)-l<<" "<<-(cycle[2*a-1]*k+1)-l<<" ";
+					}
+					if(a%2==0){
+						SAT<<-(cycle[2*a]*k+1)-j<<" "<<-(cycle[2*a-1]*k+1)-j<<" ";
+					}
+				}
+				SAT<<-(cycle[cycle.size()]*k+1)-j<<" 0"<<std::endl;
+				i++;
+			}
+		}
+	}
+	SAT.close();
+	std::fstream SAT2("sat_inst.cnf", std::ios::in| std::ios::out);
+	std::streampos start= SAT2.tellp();
+	std::string line;
+	std::getline(SAT2, line);
+	std::string p, cnf, var, clauses;
+	std::stringstream ss(line);
+	ss >> p >> cnf >> var >>clauses;
+	SAT.seekp(start);
+	i = i + std::stoi(clauses);
+	std::string newprint = p +" "+cnf + " "+var+" "+std::to_string(i);
+	SAT.write(newprint.c_str(), newprint.size()); //does not work yet
+	SAT2.close();
+	return true;
 }
 
 int main(int argc, char *argv[]) {
