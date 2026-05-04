@@ -17,6 +17,7 @@
 void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
 	int n = G.ncount();
 	int num_var = n*k;
+	solver->declare_more_variables(num_var);
 	//say that each vertex needs a colour
 	for(int i=0; i<n;i++){
 		int index=i*k+1;
@@ -114,46 +115,62 @@ std::vector<int> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
 	return cycle;
 }
 
-bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
-	std::vector<int> cycle = find_cycle(G,k,colour);
-	if(cycle.empty()){return true;} //no cycle found
-	int i=0;
-	for(int j=0;j<k;j++){ //adding the constraints forbidding any colour permutation of that cycle
+void update_sat(int k, std::vector<int> &cycle, CaDiCaL::Solver *solver){
+	//adding the constraints forbidding any colour permutation of that cycle
+	for(int j=0;j<k;j++){//for any two colours not equal
 		for(int l=0;l<k;l++){
 			if(l!=j){
-				solver->add(-(cycle[0]*k+1)-j);
-				for(int a=1;a<cycle.size()/2;a++){
+				solver->add(-(cycle[0]*k+1+j));//the variable for the first vertex in cycle and the colour j
+				//std::cout<<"adding clause: "<<-(cycle[0]*k+1)-j;
+				for(int a=1;a<cycle.size()/2;a++){//for the rest
 					if(a%2==1){
-						solver->add(-(cycle[2*a]*k+1)-l),solver->add(cycle[2*a-1]*k+1-l);
+						solver->add(-(cycle[2*a]*k+1+l)),solver->add(-(cycle[2*a-1]*k+1+l));
+						//std::cout<<", "<<-(cycle[2*a]*k+1)-l<<", "<<-(cycle[2*a-1]*k+1+l);
 					}
 					if(a%2==0){
-						solver->add(-(cycle[2*a]*k+1)-j),solver->add(-(cycle[2*a-1]*k+1)-j);
+						solver->add(-(cycle[2*a]*k+1+j)),solver->add(-(cycle[2*a-1]*k+1+j));
+						//std::cout<<", "<<-(cycle[2*a]*k+1)-j<<", "<<-(cycle[2*a-1]*k+1)-j;
 					}
 				}
-				solver->add(-(cycle[cycle.size()]*k+1)-j), solver->add(0);
-				i++;
+				if(cycle.size()%4==0){
+					solver->add(-(cycle[cycle.size()-1]*k+1+j)), solver->add(0);
+					//std::cout<<", "<<-(cycle[cycle.size()-1]*k+1)-j<<std::endl;
+				}
+				else{
+					solver->add(-(cycle[cycle.size()-1]*k+1+l)), solver->add(0);
+					//std::cout<<", "<<-(cycle[cycle.size()-1]*k+1)-l<<std::endl;
+				}
 			}
 		}
 	}
+}
+
+bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
+	std::vector<int> cycle = find_cycle(G,k,colour);
+	if(cycle.empty()){return true;} //no cycle found
+	
+	/*std::cout<<"Found cycle: ";
+	for(int i=0;i<cycle.size();i++){
+		std::cout<<cycle[i]+1<<" ";
+	}
+	std::cout<<std::endl;*/
+
+	update_sat(k,cycle,solver);
 	return false;
 }
 
 int main(int argc, char *argv[]) {
-	if(argc==0){std::cout<<"No file given"<<std::endl; return 1;}
-	if(argc==1){std::cout<<"No colour number given"<<std::endl; return 1;}
+	if(argc<2){std::cout<<"No file given"<<std::endl; return 1;}
+	if(argc==2){std::cout<<"No colour number given"<<std::endl; return 1;}
 	Graph::Graph G = Graph::Graph(argv[1]);
 	int k = std::stoi(argv[2]);
-	G.print();
+	//G.print();
+
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	initialize_solver(G,k, solver);
-	int res = solver-> solve();
-	if(res != 10){
-		std::cout<<"Unsatisfiable"<<std::endl;
-		return 1;
-	}
-	std::vector<int> colouring = read_sol(G,k, solver);
-	std::cout<<colouring[0]<<" "<<colouring[1]<<" "<<colouring[2]<<std::endl;
-	bool no_cycle = check_colouring(G, k, colouring, solver);
+	int res;
+	bool no_cycle = false;
+	std::vector<int> colouring;
 	while(!no_cycle){
 		res = solver-> solve();
 		if(res != 10){
@@ -161,10 +178,21 @@ int main(int argc, char *argv[]) {
 			return 1;
 		}
 		colouring = read_sol(G,k, solver);
-		std::cout<<colouring[0]<<" "<<colouring[1]<<" "<<colouring[2]<<std::endl;
+
+		/*std::cout<<"The colouring so far:";
+		for(int i=0;i<G.ncount();i++){
+			std::cout<<" "<<colouring[i];
+		}
+		std::cout<<std::endl;*/
+
 		no_cycle = check_colouring(G, k, colouring, solver);
 	}
 	std::cout<<"Acyclic colouring found!"<<std::endl;
+	std::cout<<"The colouring is:";
+	for(int i=0;i<G.ncount();i++){
+		std::cout<<" "<<colouring[i];
+	}
+	std::cout<<std::endl;
 	return 0;
 	
 }
