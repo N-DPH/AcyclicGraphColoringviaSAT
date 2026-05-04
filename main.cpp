@@ -166,10 +166,10 @@ bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour){
 	std::string p, cnf, var, clauses;
 	std::stringstream ss(line);
 	ss >> p >> cnf >> var >>clauses;
-	SAT.seekp(start);
+	SAT2.seekp(start);
 	i = i + std::stoi(clauses);
 	std::string newprint = p +" "+cnf + " "+var+" "+std::to_string(i);
-	SAT.write(newprint.c_str(), newprint.size()); //does not work yet
+	SAT2.write(newprint.c_str(), newprint.size()); //does not work yet
 	SAT2.close();
 	return true;
 }
