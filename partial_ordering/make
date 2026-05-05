@@ -1,0 +1,4 @@
+clang++ main.cpp ../Graph.cpp -o acycle -I/../../cadical/src ../../cadical/build/libcadical.a
+
+./acycle input_file number_colours
+add time before to get runtime
