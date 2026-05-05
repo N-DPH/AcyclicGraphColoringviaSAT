@@ -111,18 +111,18 @@ std::vector<int> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
 
 void update_sat(int k,std::vector<int> &colour, std::vector<int> &cycle, CaDiCaL::Solver *solver){
 	//forbid this specific colouring
-	std::cout<<"adding clause: ";
+	//std::cout<<"adding clause: ";
 	for(int i=0;i<cycle.size();i++){
 		if(colour[cycle[i]]!=0){
 			solver->add(-(cycle[i]*k+colour[cycle[i]])),solver->add(cycle[i]*k+colour[cycle[i]]+1);
-			std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+			//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
 		}
 		else{
 			solver->add(cycle[i]*k+colour[cycle[i]]+1);
-			std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+			//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
 		}
 	}
-	std::cout<<std::endl;
+	//std::cout<<std::endl;
 	solver->add(0);
 }
 
@@ -130,11 +130,11 @@ bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::S
 	std::vector<int> cycle = find_cycle(G,k,colour);
 	if(cycle.empty()){return true;} //no cycle found
 	
-	std::cout<<"Found cycle: ";
+	/*std::cout<<"Found cycle: ";
 	for(int i=0;i<cycle.size();i++){
 		std::cout<<cycle[i]+1<<" ";
 	}
-	std::cout<<std::endl;
+	std::cout<<std::endl;*/
 
 	update_sat(k,colour,cycle,solver);
 	return false;
@@ -160,11 +160,11 @@ int main(int argc, char *argv[]) {
 		}
 		colouring = read_sol(G,k, solver);
 
-		std::cout<<"The colouring so far:";
+		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){
 			std::cout<<" "<<colouring[i];
 		}
-		std::cout<<std::endl;
+		std::cout<<std::endl;*/
 
 		no_cycle = check_colouring(G, k, colouring, solver);
 	}
