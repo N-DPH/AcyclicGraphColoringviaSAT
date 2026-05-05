@@ -1,4 +1,6 @@
-#include "../../Graph.h"
+#include "as_mc.hpp"
+#include "as_fv.hpp"
+#include "Graph.h"
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -12,59 +14,9 @@
 #include <vector>
 #include <cstdlib>
 #include <queue>
-#include "../../cadical/src/cadical.hpp"
+#include "../cadical/src/cadical.hpp"
 
-void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
-	int n = G.ncount();
-	int num_var = n*k;
-	solver->declare_more_variables(num_var);
-	//say that each vertex needs a colour
-	for(int i=0; i<n;i++){
-		int index=i*k+1;
-		for(int j=0;j<k;j++){
-			solver->add (index);
-			index++;
-		}
-		solver->add(0);
-	}
-	//each vertex may only have one colour
-	for(int i=0; i<n;i++){
-		int index=i*k+1;
-		for(int j=0;j<k;j++){
-			for(int l=j+1;l<k;l++){
-				solver->clause(-index-j,-index-l);
-			}
-		}
-	}
-	//adjacent vertices shouldn't have the same colour
-	std::vector<Graph::VertexType> edges = G.elist();
-	for (int i=0;i<G.ecount();i++){
-		int index_v = edges[2*i] *k+1;
-		int index_w = edges[2*i+1] *k+1;
-		for(int j=0;j<k;j++){
-			solver->clause(-index_v-j,-index_w-j);
-		}
-	}
-}
-
-
-std::vector<int> read_sol(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
-	std::vector<int> colours = std::vector<int>(G.ncount());
-	int res;
-	//find out which colours were assigned
-	for(int i=0; i<G.ncount();i++){
-		for(int j=0;j<k;j++){
-			res = solver->val(i*k+1+j);
-			if(res == i*k+1+j){
-				colours[i]=j;
-				break;
-			}
-		}
-	}
-    return colours;
-}
-
-std::vector<std::vector<int>> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
+std::vector<std::vector<int>> assignment::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour){
 	std::set<std::pair<int,int>> existing_pairs;
 	std::vector<Graph::VertexType> edges = G.elist();
 	std::vector<std::vector<int>> cycles = std::vector<std::vector<int>>(0);
@@ -134,7 +86,7 @@ std::vector<std::vector<int>> find_cycle(Graph::Graph &G, int k, std::vector<int
 	return cycles;
 }
 
-void update_sat(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
+void assignment::update_sat_mc(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
 	//adding the constraints forbidding any colour permutation of that cycle
 	for(std::vector<int> cycle : cycles){//for every found cycle
 		for(int j=0;j<k;j++){//for any two colours not equal
@@ -166,8 +118,8 @@ void update_sat(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *s
 	}
 }
 
-bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
-	std::vector<std::vector<int>> cycles = find_cycle(G,k,colour);
+bool assignment::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
+	std::vector<std::vector<int>> cycles = find_cycle_mc(G,k,colour);
 	if(cycles.empty()){return true;} //no cycle found
 	
 	/*std::cout<<"Found cycles: ";
@@ -178,15 +130,12 @@ bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::S
 		std::cout<<std::endl;
 	}*/
 
-	update_sat(k,cycles,solver);
+	update_sat_mc(k,cycles,solver);
 	return false;
 }
 
-int main(int argc, char *argv[]) {
-	if(argc<2){std::cout<<"No file given"<<std::endl; return 1;}
-	if(argc==2){std::cout<<"No colour number given"<<std::endl; return 1;}
-	Graph::Graph G = Graph::Graph(argv[1]);
-	int k = std::stoi(argv[2]);
+int assignment::solve_mc(char *filename, int k) {
+	Graph::Graph G = Graph::Graph(filename);
 	//G.print();
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
@@ -208,7 +157,7 @@ int main(int argc, char *argv[]) {
 		}
 		std::cout<<std::endl;*/
 
-		no_cycle = check_colouring(G, k, colouring, solver);
+		no_cycle = check_colouring_mc(G, k, colouring, solver);
 	}
 	/*std::cout<<"Acyclic colouring found!"<<std::endl;
 	std::cout<<"The colouring is:";
@@ -217,5 +166,4 @@ int main(int argc, char *argv[]) {
 	}
 	std::cout<<std::endl;*/
 	return 0;
-	
 }

@@ -1,0 +1,6 @@
+The flags for the SAT endcoding are
+-as for the standard assignment
+-po for the partial ordering
+
+-fv for first version, nothing special
+-mc for finding several cycles

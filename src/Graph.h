@@ -7,7 +7,6 @@
  * Modified from previous project on graph colouring
  */
 
-
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -19,6 +18,9 @@
 #include <random>
 #include <cassert>
 #include <vector>
+
+#ifndef GRAPH_H
+#define GRAPH_H
 
 namespace Graph{
 
@@ -219,3 +221,4 @@ public:
 };
 
 } //namespace Graph
+#endif

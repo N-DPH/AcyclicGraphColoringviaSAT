@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
-#include "Graph.h"
+#include "src/Graph.h"
 
 void create_graph(int n, int number){
     std::vector<int> elist=std::vector<int>(0);
