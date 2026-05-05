@@ -1,4 +1,4 @@
-#include "Graph.h"
+#include "../../Graph.h"
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -12,7 +12,7 @@
 #include <vector>
 #include <cstdlib>
 #include <queue>
-#include "../cadical/src/cadical.hpp"
+#include "../../cadical/src/cadical.hpp"
 
 void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
 	int n = G.ncount();
