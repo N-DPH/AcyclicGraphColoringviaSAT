@@ -5,7 +5,7 @@
 #ifndef AS_FV_HPP
 #define AS_FV_HPP
 
-namespace assignment{
+namespace Assignment{
 
 void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver);
 

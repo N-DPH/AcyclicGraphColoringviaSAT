@@ -1,3 +1,5 @@
+#include "po_mc.hpp"
+#include "po_fv.hpp"
 #include "Graph.h"
 #include <set>
 #include <iostream>
@@ -14,51 +16,7 @@
 #include <queue>
 #include "../cadical/src/cadical.hpp"
 
-void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
-	int n = G.ncount();
-	int num_var = n*k;
-	solver->declare_more_variables(num_var);
-	//say that each vertex needs a colour
-	for(int i=0; i<n;i++){
-		solver->clause(-(i*k+k));
-	}
-	std::vector<Graph::VertexType> edges = G.elist();
-	//for each edge, one of the vertices needs to have colour higher 1
-	for(int i=0; i<G.ecount();i++){
-		solver->clause((edges[2*i]*k+1),(edges[2*i+1]*k+1));
-	}
-	//the sequence for one vertex over colours should just have one 1-0 switch
-	for(int i=0; i<n;i++){
-		for(int j=1;j<k;j++){
-			solver->clause((i*k+j),-(i*k+j+1));
-		}
-	}
-	//adjacent vertices shouldn't have the same colour
-	for (int i=0;i<G.ecount();i++){
-		for(int j=2;j<=k;j++){
-			solver->clause(-(edges[2*i]*k+j-1),(edges[2*i]*k+j),-(edges[2*i+1]*k+j-1),(edges[2*i+1]*k+j));
-		}
-	}
-}
-
-
-std::vector<int> read_sol(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
-	std::vector<int> colours = std::vector<int>(G.ncount());
-	int res;
-	//find out which colours were assigned
-	for(int i=0; i<G.ncount();i++){
-		for(int j=1;j<=k;j++){
-			res = solver->val(i*k+j);
-			if(res == -(i*k+j)){
-				colours[i]=j-1;
-				break;
-			}
-		}
-	}
-    return colours;
-}
-
-std::vector<std::vector<int>> find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
+std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour){
 	std::set<std::pair<int,int>> existing_pairs;
 	std::vector<Graph::VertexType> edges = G.elist();
 	std::vector<std::vector<int>> cycles = std::vector<std::vector<int>>(0);
@@ -128,7 +86,7 @@ std::vector<std::vector<int>> find_cycle(Graph::Graph &G, int k, std::vector<int
 	return cycles;
 }
 
-void update_sat(int k,std::vector<int> &colour, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
+void PartialOrder::update_sat_mc(int k,std::vector<int> &colour, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
 	//forbid this specific colouring
 	//std::cout<<"adding clause: ";
 	for(std::vector<int> cycle : cycles){
@@ -147,8 +105,8 @@ void update_sat(int k,std::vector<int> &colour, std::vector<std::vector<int>> &c
 	}
 }
 
-bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
-	std::vector<std::vector<int>> cycles = find_cycle(G,k,colour);
+bool PartialOrder::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
+	std::vector<std::vector<int>> cycles = find_cycle_mc(G,k,colour);
 	if(cycles.empty()){return true;} //no cycle found
 	
 	/*std::cout<<"Found cycle: ";
@@ -159,15 +117,12 @@ bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::S
 		std::cout<<std::endl;
 	}*/
 
-	update_sat(k,colour,cycles,solver);
+	update_sat_mc(k,colour,cycles,solver);
 	return false;
 }
 
-int main(int argc, char *argv[]) {
-	if(argc<2){std::cout<<"No file given"<<std::endl; return 1;}
-	if(argc==2){std::cout<<"No colour number given"<<std::endl; return 1;}
-	Graph::Graph G = Graph::Graph(argv[1]);
-	int k = std::stoi(argv[2]);
+int PartialOrder::solve_mc(char* filename, int k) {
+	Graph::Graph G = Graph::Graph(filename);
 	//G.print();
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
@@ -189,7 +144,7 @@ int main(int argc, char *argv[]) {
 		}
 		std::cout<<std::endl;*/
 
-		no_cycle = check_colouring(G, k, colouring, solver);
+		no_cycle = check_colouring_mc(G, k, colouring, solver);
 	}
 	/*std::cout<<"Acyclic colouring found!"<<std::endl;
 	std::cout<<"The colouring is:";

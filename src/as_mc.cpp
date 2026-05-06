@@ -16,7 +16,7 @@
 #include <queue>
 #include "../cadical/src/cadical.hpp"
 
-std::vector<std::vector<int>> assignment::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour){
+std::vector<std::vector<int>> Assignment::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour){
 	std::set<std::pair<int,int>> existing_pairs;
 	std::vector<Graph::VertexType> edges = G.elist();
 	std::vector<std::vector<int>> cycles = std::vector<std::vector<int>>(0);
@@ -86,7 +86,7 @@ std::vector<std::vector<int>> assignment::find_cycle_mc(Graph::Graph &G, int k, 
 	return cycles;
 }
 
-void assignment::update_sat_mc(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
+void Assignment::update_sat_mc(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
 	//adding the constraints forbidding any colour permutation of that cycle
 	for(std::vector<int> cycle : cycles){//for every found cycle
 		for(int j=0;j<k;j++){//for any two colours not equal
@@ -118,7 +118,7 @@ void assignment::update_sat_mc(int k, std::vector<std::vector<int>> &cycles, CaD
 	}
 }
 
-bool assignment::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
+bool Assignment::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
 	std::vector<std::vector<int>> cycles = find_cycle_mc(G,k,colour);
 	if(cycles.empty()){return true;} //no cycle found
 	
@@ -134,7 +134,7 @@ bool assignment::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> col
 	return false;
 }
 
-int assignment::solve_mc(char *filename, int k) {
+int Assignment::solve_mc(char *filename, int k) {
 	Graph::Graph G = Graph::Graph(filename);
 	//G.print();
 
