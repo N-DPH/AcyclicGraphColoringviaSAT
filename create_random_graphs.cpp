@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <stdexcept>
 #include "src/Graph.h"
 
 void create_graph(int n, int number){
@@ -20,11 +21,22 @@ void create_graph(int n, int number){
 }
 
 int main(int argc, char *argv[]) {
-	if(argc<2){std::cout<<"No number of graphs given"<<std::endl; return 1;}
-    if(argc==2){std::cout<<"No size of graph given"<<std::endl;return 1;}
+try{
+	if(argc<2){throw std::runtime_error("No number of graphs given");}
+    if(argc==2){throw std::runtime_error("No size of graph given");}
+    system("rm random_instances/*");
 	for(int i = 0; i<std::stoi(argv[1]);i++){
         create_graph(std::stoi(argv[2]),i);
     }
 
     return 0;
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown error caught"<<std::endl;
+    return 1;
+}
 }

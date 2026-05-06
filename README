@@ -1,3 +1,12 @@
+CaDiCaL should be installed and the include links in the Makefile updated.
+Then make creates three executables.
+
+Usage is ./build/acycle filename number
+to see if there is a colouring with that many colours.
+
+Usage is ./build/acycle_k filename ub
+to find the colouring number where ub should be a viable upper bound.
+
 The flags for the SAT endcoding are
 -as for the standard assignment
 -po for the partial ordering

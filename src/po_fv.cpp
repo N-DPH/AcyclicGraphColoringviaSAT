@@ -153,7 +153,7 @@ int PartialOrder::solve_fv(char* filename, int k) {
 	while(!no_cycle){
 		res = solver-> solve();
 		if(res != 10){
-			//std::cout<<"Unsatisfiable"<<std::endl;
+			std::cout<<"Unsatisfiable"<<std::endl;
 			return 1;
 		}
 		colouring = read_sol(G,k, solver);
@@ -166,8 +166,8 @@ int PartialOrder::solve_fv(char* filename, int k) {
 
 		no_cycle = check_colouring(G, k, colouring, solver);
 	}
-	/*std::cout<<"Acyclic colouring found!"<<std::endl;
-	std::cout<<"The colouring is:";
+	std::cout<<"Acyclic colouring found!"<<std::endl;
+	/*std::cout<<"The colouring is:";
 	for(int i=0;i<G.ncount();i++){
 		std::cout<<" "<<colouring[i];
 	}

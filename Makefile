@@ -2,10 +2,11 @@ sources := src/solver.cpp src/as_fv.cpp src/as_mc.cpp src/po_fv.cpp src/po_mc.cp
 executables := build/random_generator build/acycle build/acycle_k
 objects := build/as_fv.o build/as_mc.o build/po_fv.o build/po_mc.o
 includes := -I/cadical/src cadical/build/libcadical.a
+folder := build random_instances
 CXXFLAGS := -Wall -Werror
 CCX := clang++
 
-all: $(executables)
+all: createfolder $(executables)
 
 build/acycle_k : colouring_number.cpp
 	$(CCX) $(CXXFLAGS) $< -o $@
@@ -18,6 +19,9 @@ build/%.o : src/%.cpp
 
 build/random_generator : create_random_graphs.cpp
 	$(CCX) $(CXXFLAGS) create_random_graphs.cpp src/Graph.cpp -o build/random_generator
+
+createfolder:
+	mkdir -p ${folder}
 
 clean: 
 	rm -f $(executables) $(objects)
