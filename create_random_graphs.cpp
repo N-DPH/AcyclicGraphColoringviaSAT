@@ -24,9 +24,11 @@ int main(int argc, char *argv[]) {
 try{
 	if(argc<2){throw std::runtime_error("No number of graphs given");}
     if(argc==2){throw std::runtime_error("No size of graph given");}
-    system("rm random_instances/*");
-	for(int i = 0; i<std::stoi(argv[1]);i++){
-        create_graph(std::stoi(argv[2]),i);
+    system("rm -f random_instances/*");
+    if(!(std::atoi(argv[1])>0)){throw std::runtime_error("The input should be a positive number");}
+    if(!(std::atoi(argv[2])>0)){throw std::runtime_error("The input should be a positive number");}
+	for(int i = 0; i<std::atoi(argv[1]);i++){
+        create_graph(std::atoi(argv[2]),i);
     }
 
     return 0;

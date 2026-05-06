@@ -1,15 +1,22 @@
 CaDiCaL should be installed and the include links in the Makefile updated.
-Then make creates three executables.
+Then 'make' creates three executables.
 
-Usage is ./build/acycle filename number
+Usage is './build/acycle filename number'
 to see if there is a colouring with that many colours.
 
-Usage is ./build/acycle_k filename ub
+Usage is './build/acycle_k filename ub'
 to find the colouring number where ub should be a viable upper bound.
 
-The flags for the SAT endcoding are
--as for the standard assignment
--po for the partial ordering
+Usage is './build/random_generator number size'
+to create number many random graphs with size many vertices in the folder random_instances.
 
--fv for first version, nothing special
--mc for finding several cycles
+The flags for the SAT endcoding are
+for the assignment:
+    -as for the standard assignment
+    -po for the partial ordering assignment
+
+for the version of that assignment:
+    -fv for first version, nothing special
+    -mc for finding several cycles
+
+    THEY SHOULD BE AT THE END OF THE COMMAND

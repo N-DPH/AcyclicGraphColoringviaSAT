@@ -6,7 +6,8 @@ int main(int argc, char *argv[]) {
 try{
 	if(argc<2){throw std::runtime_error("No file given");}
     if(argc==2){throw std::runtime_error("No upper bound given");}
-    int b = std::stoi(argv[2]);
+    if(!(std::atoi(argv[2])>0)){throw std::runtime_error("The input should be a positive number");}
+    int b = std::atoi(argv[2]);
     for(int i=b;i>=0;i--){
         std::string file = argv[1];
         std::string command = "./build/acycle "+file+" " +std::to_string(i)+" -po -mc";

@@ -11,7 +11,7 @@ all: createfolder $(executables)
 build/acycle_k : colouring_number.cpp
 	$(CCX) $(CXXFLAGS) $< -o $@
 
-build/acycle : $(objects)
+build/acycle : src/solver.cpp $(objects)
 	$(CCX) $(CXXFLAGS) src/solver.cpp src/Graph.cpp $(objects) -o $@ $(includes)
 
 build/%.o : src/%.cpp
