@@ -160,6 +160,7 @@ int Assignment::solve_mc(char *filename, int k) {
 		no_cycle = check_colouring_mc(G, k, colouring, solver);
 	}
 	std::cout<<"Acyclic colouring found!"<<std::endl;
+	delete solver;
 	/*std::cout<<"The colouring is:";
 	for(int i=0;i<G.ncount();i++){
 		std::cout<<" "<<colouring[i];
