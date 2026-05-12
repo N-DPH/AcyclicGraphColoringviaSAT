@@ -6,20 +6,13 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <algorithm>
-#include <numeric>
-#include <cmath>
-#include <random>
-#include <cassert>
 #include <vector>
-#include <cstdlib>
 #include <queue>
 #include "../cadical/src/cadical.hpp"
 
-std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour){
+void PartialOrder::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour, std::vector<std::vector<int>> &cycles){
 	std::set<std::pair<int,int>> existing_pairs;
 	std::vector<Graph::VertexType> edges = G.elist();
-	std::vector<std::vector<int>> cycles = std::vector<std::vector<int>>(0);
 	Graph::NeighborList neighbors = G.get_neighbor_list();
 	for(int i=0; i<G.ecount();i++){
 		int lower_colour = std::min(colour[edges[2*i]],colour[edges[2*i+1]]);
@@ -28,9 +21,11 @@ std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k
 	}
 	//to not get weird overlapping cycles
 	std::vector<bool> in_cycle = std::vector<bool>(G.ncount(),false);
+	std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
+	std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
 	for(std::pair<int,int> p : existing_pairs){
-		std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
-		std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
+		std::fill(visited.begin(), visited.end(),false);
+		std::fill(parent.begin(),parent.end(),-1); 
 		for(int i=0;i<G.ncount();i++){
 			if(!in_cycle[i] && !visited[i] && (colour[i]==p.first || colour[i]==p.second)){
 				std::queue<int> q;
@@ -43,7 +38,6 @@ std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k
 							std::vector<int> cycle= std::vector<int>(0);
 							cycle.push_back(w);
 							in_cycle[w]=true;
-							int start_of_cycle = w;
 							cycle.push_back(v);
 							in_cycle[v]=true;
 							w=parent[w];
@@ -62,14 +56,13 @@ std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k
 							cycle.push_back(v);
 							in_cycle[v]=true;
 							cycles.push_back(cycle);//should work because we only have even cycles
-							//resetting everything so that we can just continue with the next vertex
+							//resetting everything so that we can find further cycles
 							while(!q.empty()){
 								v=q.front();
-								if(v!= start_of_cycle){
-									visited[v]=false;
-								}
 								q.pop();
 							}
+							std::fill(visited.begin(), visited.end(),false);
+							std::fill(parent.begin(),parent.end(),-1);
 							break;
 						}
 						if(!in_cycle[w] && w != parent[v] && (colour[w]==p.first || colour[w]==p.second)){
@@ -83,7 +76,7 @@ std::vector<std::vector<int>> PartialOrder::find_cycle_mc(Graph::Graph &G, int k
 			else{visited[i]=true;}
 		}
 	}
-	return cycles;
+	return;
 }
 
 void PartialOrder::update_sat_mc(int k,std::vector<int> &colour, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver){
@@ -91,12 +84,12 @@ void PartialOrder::update_sat_mc(int k,std::vector<int> &colour, std::vector<std
 	//std::cout<<"adding clause: ";
 	for(std::vector<int> cycle : cycles){
 		for(int i=0;i<cycle.size();i++){
-			if(colour[cycle[i]]!=0){
+			if(colour[cycle[i]]>0){
 				solver->add(-(cycle[i]*k+colour[cycle[i]])),solver->add(cycle[i]*k+colour[cycle[i]]+1);
 				//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
 			}
 			else{
-				solver->add(cycle[i]*k+colour[cycle[i]]+1);
+				solver->add(cycle[i]*k+1);
 				//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
 			}
 		}
@@ -106,7 +99,8 @@ void PartialOrder::update_sat_mc(int k,std::vector<int> &colour, std::vector<std
 }
 
 bool PartialOrder::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver){
-	std::vector<std::vector<int>> cycles = find_cycle_mc(G,k,colour);
+	std::vector<std::vector<int>> cycles = std::vector<std::vector<int>>(0);
+	find_cycle_mc(G,k,colour, cycles);
 	if(cycles.empty()){return true;} //no cycle found
 	
 	/*std::cout<<"Found cycle: ";
@@ -134,6 +128,7 @@ int PartialOrder::solve_mc(char* filename, int k) {
 		res = solver-> solve();
 		if(res != 10){
 			std::cout<<"Unsatisfiable"<<std::endl;
+			delete solver;
 			return 1;
 		}
 		colouring = read_sol(G,k, solver);

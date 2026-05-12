@@ -174,6 +174,7 @@ int Assignment::solve_fv(char* filename, int k) {
 		res = solver-> solve();
 		if(res != 10){
 			std::cout<<"Unsatisfiable"<<std::endl;
+			delete solver;
 			return 1;
 		}
 		colouring = read_sol(G,k, solver);

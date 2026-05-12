@@ -6,7 +6,7 @@
 #define AS_MC_HPP
 
 namespace Assignment{
-    std::vector<std::vector<int>> find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour);
+    void find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour, std::vector<std::vector<int>> &cycles);
 
     void update_sat_mc(int k, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver);
 
