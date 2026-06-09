@@ -141,9 +141,7 @@ bool PartialOrder::check_colouring(Graph::Graph &G, int k, std::vector<int> colo
 	return false;
 }
 
-int PartialOrder::solve_fv(char* filename, int k) {
-	Graph::Graph G = Graph::Graph(filename);
-	//G.print();
+int PartialOrder::solve_fv(Graph::Graph &G, int k) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	initialize_solver(G,k, solver);

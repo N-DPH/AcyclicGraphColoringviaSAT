@@ -12,6 +12,6 @@ namespace PartialOrder{
 
     bool check_colouring_mc(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver);
 
-    int solve_mc(char* filename, int k);
+    int solve_mc(Graph::Graph &G, int k);
 }
 #endif

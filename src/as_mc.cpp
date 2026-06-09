@@ -134,9 +134,7 @@ bool Assignment::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> col
 	return false;
 }
 
-int Assignment::solve_mc(char *filename, int k) {
-	Graph::Graph G = Graph::Graph(filename);
-	//G.print();
+int Assignment::solve_mc(Graph::Graph &G, int k) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	initialize_solver(G,k, solver);

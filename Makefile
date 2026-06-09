@@ -1,15 +1,12 @@
-sources := src/solver.cpp src/as_fv.cpp src/as_mc.cpp src/po_fv.cpp src/po_mc.cpp src/Graph.cpp 
-executables := build/random_generator build/acycle build/acycle_k
-objects := build/as_fv.o build/as_mc.o build/po_fv.o build/po_mc.o
+sources := src/solver.cpp src/as_fv.cpp src/as_mc.cpp src/po_fv.cpp src/po_mc.cpp src/Graph.cpp  src/upper_bound.cpp
+executables := build/random_generator build/acycle
+objects := build/as_fv.o build/as_mc.o build/po_fv.o build/po_mc.o build/upper_bound.o
 includes := -I/cadical/src cadical/build/libcadical.a
 folder := build random_instances
 CXXFLAGS := -g -Wall -Werror -fsanitize=address
 CCX := clang++
 
 all: createfolder $(executables)
-
-build/acycle_k : colouring_number.cpp
-	$(CCX) $(CXXFLAGS) $< -o $@
 
 build/acycle : src/solver.cpp $(objects)
 	$(CCX) $(CXXFLAGS) src/solver.cpp src/Graph.cpp $(objects) -o $@ $(includes)

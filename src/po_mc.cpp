@@ -115,9 +115,7 @@ bool PartialOrder::check_colouring_mc(Graph::Graph &G, int k, std::vector<int> c
 	return false;
 }
 
-int PartialOrder::solve_mc(char* filename, int k) {
-	Graph::Graph G = Graph::Graph(filename);
-	//G.print();
+int PartialOrder::solve_mc(Graph::Graph &G, int k) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	initialize_solver(G,k, solver);

@@ -161,10 +161,8 @@ bool Assignment::check_colouring(Graph::Graph &G, int k, std::vector<int> colour
 	return false;
 }
 
-int Assignment::solve_fv(char* filename, int k) {
-	Graph::Graph G = Graph::Graph(filename);
-	//G.print();
-
+int Assignment::solve_fv(Graph::Graph &G, int k) {
+	
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	initialize_solver(G,k, solver);
 	int res;

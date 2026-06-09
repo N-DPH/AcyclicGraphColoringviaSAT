@@ -1,11 +1,8 @@
 CaDiCaL should be installed and the include links in the Makefile updated.
 Then 'make' creates three executables.
 
-Usage is './build/acycle filename number'
-to see if there is a colouring with that many colours.
-
-Usage is './build/acycle_k filename ub'
-to find the colouring number where ub should be a viable upper bound.
+Usage is './build/acycle filename'
+to find the colouring number.
 
 Usage is './build/random_generator number size'
 to create number many random graphs with size many vertices in the folder random_instances.

@@ -17,6 +17,6 @@ void update_sat(int k,std::vector<int> &colour, std::vector<int> &cycle, CaDiCaL
 
 bool check_colouring(Graph::Graph &G, int k, std::vector<int> colour, CaDiCaL::Solver *solver);
 
-int solve_fv(char* filename, int k) ;
+int solve_fv(Graph::Graph &G, int k) ;
 }
 #endif
