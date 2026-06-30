@@ -1,1 +1,0 @@
-clang++ main.cpp Graph.cpp -o acycle -I/../cadical/src ../cadical/build/libcadical.a
