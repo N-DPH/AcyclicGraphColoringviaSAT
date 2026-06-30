@@ -1,6 +1,6 @@
 
 *****************************
-DATA:random_instances/random_size_25_4.col	 N:25	 M:156	 D:0.52
+DATA:random_instances/random_size_10_4.col	 N:10	 M:17	 D:0.377778
 TIME_LIMIT:100
 TIME_LIMIT_HEUR:0.05
 ALG:1
@@ -13,7 +13,7 @@ preprocessing....
 solving....
 
 *****************************
-DATA:random_instances/random_size_25_4.col	 N:25	 M:156	 D:0.52
+DATA:random_instances/random_size_10_4.col	 N:10	 M:17	 D:0.377778
 TIME_LIMIT:100
 TIME_LIMIT_HEUR:0.05
 ALG:1
@@ -21,6 +21,6 @@ SORTING:1
 AMTS:0
 *****************************
 *****************************
-w:6	t_par: 0.001	t_pp: 0.005	t_search: 0.001	#steps: 1
+w:4	t_par: 0	t_pp: 0.003	t_search: 0	#steps: 0
 *****************************
-10 5 9 11 13 2  [6]
+1 8 5 2  [4]

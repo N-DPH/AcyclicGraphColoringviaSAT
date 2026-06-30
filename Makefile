@@ -3,7 +3,7 @@ executables := build/random_generator build/acycle
 objects := build/as_fv.o build/as_mc.o build/po_fv.o build/po_mc.o build/upper_bound.o build/lower_bound.o
 includes := -I/cadical/src cadical/build/libcadical.a
 folder := build random_instances
-CXXFLAGS := -g -Wall -Werror -fsanitize=address
+CXXFLAGS := -O3 -g -Wall -Werror -fsanitize=address
 CCX := clang++
 
 all: createfolder $(executables)

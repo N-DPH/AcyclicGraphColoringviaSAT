@@ -21,17 +21,20 @@ try{
     Graph::Graph G =  Graph::Graph(argv[1]);
     std::clock_t t_read_graph = std::clock();
     std::cout<<"Time for reading the graph "<< 1000.0*(t_read_graph - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+
     int lb = find_lower_bound(argv[1]);
     std::clock_t t_lb = std::clock();
     std::cout<<"Lower bound found "<<lb<<std::endl;
-    std::cout<<"Time for computing upper bound "<< 1000.0 *(t_lb - t_read_graph) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+    std::cout<<"Time for computing lower bound "<< 1000.0 *(t_lb - t_read_graph) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+
     int ub = acyclic_dsatur(G);
     std::clock_t t_ub = std::clock();
     std::cout<<"Upper bound found "<<ub<<std::endl;
     std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_lb) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+
     if(ub==lb){
         std::cout<<"The lower bound is equal to the upper bound."<<std::endl<<"The colouring number is "<< lb<<std::endl;
-        std::cout<<"Time for whole program "<< 1000.0 *(t_ub - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+        std::cout<<"Time for whole program "<< 1000.0 *(t_ub - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl<<std::endl;
         return 0;
     }
     for(int i = ub-1 ; i>=lb ; i--){
@@ -41,7 +44,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -50,7 +53,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -64,7 +67,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -73,7 +76,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -88,7 +91,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -97,7 +100,7 @@ try{
                     std::cout<<"The colouring number is "<<i+1<<std::endl;
                     std::clock_t t_end = std::clock();
                     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
                     return 0;
                 }
             }
@@ -112,7 +115,7 @@ try{
     std::cout<<"The colouring number is "<<lb<<std::endl;
     std::clock_t t_end = std::clock();
     std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl;
+    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
     return 0;
 }
 catch(std::runtime_error e){

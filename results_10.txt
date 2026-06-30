@@ -1,0 +1,53 @@
+random_instances/random_size_10_0.col
+Time for reading the graph 1.846ms.
+Lower bound found 3
+Time for computing lower bound 1.47ms.
+Upper bound found 5
+Time for computing upper bound 0.75ms.
+Acyclic colouring found!
+Unsatisfiable
+The colouring number is 4
+Time for finding actual colouring number 0s.
+Time for the whole program 0s.
+
+random_instances/random_size_10_1.col
+Time for reading the graph 0.616ms.
+Lower bound found 4
+Time for computing lower bound 0.786ms.
+Upper bound found 6
+Time for computing upper bound 0.538ms.
+Acyclic colouring found!
+Unsatisfiable
+The colouring number is 5
+Time for finding actual colouring number 0s.
+Time for the whole program 0s.
+
+random_instances/random_size_10_2.col
+Time for reading the graph 1.351ms.
+Lower bound found 5
+Time for computing lower bound 1.073ms.
+Upper bound found 5
+Time for computing upper bound 0.695ms.
+The lower bound is equal to the upper bound.
+The colouring number is 5
+Time for whole program 3.119ms.
+random_instances/random_size_10_3.col
+Time for reading the graph 1.391ms.
+Lower bound found 3
+Time for computing lower bound 1.51ms.
+Upper bound found 3
+Time for computing upper bound 0.369ms.
+The lower bound is equal to the upper bound.
+The colouring number is 3
+Time for whole program 3.27ms.
+random_instances/random_size_10_4.col
+Time for reading the graph 1.089ms.
+Lower bound found 4
+Time for computing lower bound 1.046ms.
+Upper bound found 5
+Time for computing upper bound 0.499ms.
+Acyclic colouring found!
+The colouring number is 4
+Time for finding actual colouring number 0s.
+Time for the whole program 0s.
+

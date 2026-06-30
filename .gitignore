@@ -1,3 +1,6 @@
 build/
 random_instances/
 first_try/
+CliSAT/
+cadical/
+npbench/
