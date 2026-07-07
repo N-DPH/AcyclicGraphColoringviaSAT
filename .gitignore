@@ -4,3 +4,6 @@ first_try/
 CliSAT/
 cadical/
 npbench/
+*.txt
+*.col
+*.cvs

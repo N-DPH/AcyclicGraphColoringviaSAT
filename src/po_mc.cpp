@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <vector>
 #include <queue>
+#include <ctime>
 #include "../cadical/src/cadical.hpp"
 
 void PartialOrder::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour, std::vector<std::vector<int>> &cycles){
@@ -122,10 +123,24 @@ int PartialOrder::solve_mc(Graph::Graph &G, int k) {
 	int res;
 	bool no_cycle = false;
 	std::vector<int> colouring;
+
+	int counter=0;
+	std::clock_t t_before_solve;
+	std::clock_t t_after_solve;
+	std::clock_t t_before_cycle;
+	std::clock_t t_after_cycle;
+	double t_solving;
+	double t_finding_cycles;
+
 	while(!no_cycle){
+		t_before_solve = std::clock();
 		res = solver-> solve();
+		t_after_solve = std::clock();
+		t_solving = t_solving + 1000.0*(t_after_solve - t_before_solve)/ CLOCKS_PER_SEC;
+
 		if(res != 10){
 			std::cout<<"Unsatisfiable"<<std::endl;
+			std::cout<<(counter+1)<<" calls to solver. Time spent on solver: "<< t_solving<<"ms. Time spent finding cycles: "<< t_finding_cycles<<"ms."<<std::endl;
 			delete solver;
 			return 1;
 		}
@@ -136,10 +151,14 @@ int PartialOrder::solve_mc(Graph::Graph &G, int k) {
 			std::cout<<" "<<colouring[i];
 		}
 		std::cout<<std::endl;*/
-
+		t_before_cycle = std::clock();
 		no_cycle = check_colouring_mc(G, k, colouring, solver);
+		t_after_cycle = std::clock();
+		t_finding_cycles = t_finding_cycles + 1000.0*(t_after_cycle - t_before_cycle)/CLOCKS_PER_SEC;
+		counter++;
 	}
 	std::cout<<"Acyclic colouring found!"<<std::endl;
+	std::cout<<counter<<" calls to solver. Time spent on solver: "<< t_solving<<"ms. Time spent finding cycles: "<< t_finding_cycles<<"ms."<<std::endl;
 	delete solver;
 	/*std::cout<<"The colouring is:";
 	for(int i=0;i<G.ncount();i++){

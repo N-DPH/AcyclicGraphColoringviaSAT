@@ -37,24 +37,19 @@ try{
         std::cout<<"Time for whole program "<< 1000.0 *(t_ub - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl<<std::endl;
         return 0;
     }
+    int colouring_number = 0;
     for(int i = ub-1 ; i>=lb ; i--){
         if(argc==2 || std::string(argv[2])=="-po"){
             if(argc<=3 || std::string(argv[3])=="-mc"){
                 if(PartialOrder::solve_mc(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else if( std::string(argv[3])=="-fv"){
                 if(PartialOrder::solve_fv(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else{
@@ -64,20 +59,14 @@ try{
         else if(std::string(argv[2])=="-as"){
             if(argc<=3 || std::string(argv[3])=="-mc"){
                 if(Assignment::solve_mc(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else if(std::string(argv[3])=="-fv"){
                 if(Assignment::solve_fv(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else{
@@ -88,20 +77,14 @@ try{
             std::cout<<"Only the version not the assignment specified using -po as standard"<<std::endl;
             if(std::string(argv[2])=="-mc"){
                 if(PartialOrder::solve_mc(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else if( std::string(argv[2])=="-fv"){
                 if(PartialOrder::solve_fv(G,i)==1){
-                    std::cout<<"The colouring number is "<<i+1<<std::endl;
-                    std::clock_t t_end = std::clock();
-                    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-                    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
-                    return 0;
+                    colouring_number= i+1;
+                    break;
                 }
             }
             else{
@@ -112,10 +95,23 @@ try{
             throw std::runtime_error("The flag "+std::string(argv[2])+" does not exist");
         }
     }
-    std::cout<<"The colouring number is "<<lb<<std::endl;
+    if(colouring_number==0){colouring_number=lb;}
+    std::cout<<"The colouring number is "<<colouring_number<<std::endl;
     std::clock_t t_end = std::clock();
-    std::cout<<"Time for finding actual colouring number "<< (t_end - t_ub) / CLOCKS_PER_SEC<<"s."<<std::endl;
-    std::cout<<"Time for the whole program "<<(t_end-t_start)/CLOCKS_PER_SEC <<"s."<<std::endl<<std::endl;
+    std::cout<<"Time for finding actual colouring number "<< 1000.0*(t_end - t_ub) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+    std::cout<<"Time for the whole program "<<1000.0*(t_end-t_start)/CLOCKS_PER_SEC <<"ms."<<std::endl<<std::endl;
+    
+    //log the time
+    std::string filename = "log_";
+    filename += std::to_string(G.ncount());
+    filename += ".cvs";
+    std::ofstream out_file(filename,std::ios::app);
+    if(not out_file.is_open()){
+        throw std::runtime_error("Unable to open file to write log to");
+    }
+    out_file << "n"<<G.ncount()<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+    out_file.close();
+
     return 0;
 }
 catch(std::runtime_error e){

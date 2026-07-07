@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <stdexcept>
-#include "src/Graph.h"
+#include "Graph.h"
 
 void create_graph(int n, int number){
     std::vector<int> elist=std::vector<int>(0);

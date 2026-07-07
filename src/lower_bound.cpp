@@ -6,7 +6,7 @@
 #include <regex>
 
 int find_lower_bound (const char* filename){
-    std::string command = "./CliSAT/bin/CliSAT_2024_07_06 ";
+    std::string command = "./CliSAT/bin/CliSAT_2025_05_21.exe ";
     command += filename;
     command += " 100 1 0 > lower_bound.txt";
     system(command.c_str());

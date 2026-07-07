@@ -14,8 +14,8 @@ build/acycle : src/solver.cpp $(objects)
 build/%.o : src/%.cpp
 	$(CCX) $(CXXFLAGS) -c $< -o $@
 
-build/random_generator : create_random_graphs.cpp
-	$(CCX) $(CXXFLAGS) create_random_graphs.cpp src/Graph.cpp -o build/random_generator
+build/random_generator : src/create_random_graphs.cpp
+	$(CCX) $(CXXFLAGS) src/create_random_graphs.cpp src/Graph.cpp -o build/random_generator
 
 createfolder:
 	mkdir -p ${folder}
