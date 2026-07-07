@@ -5,5 +5,4 @@ CliSAT/
 cadical/
 npbench/
 *.txt
-*.col
 *.cvs

@@ -3,6 +3,7 @@ This does comments. The end does can be anything.
 END
 
 rm -f log_20.cvs
+echo "catergory time" >>log_20.cvs
 rm -f results_20.txt
 ./build/random_generator 20 20
 for file in random_instances/*
