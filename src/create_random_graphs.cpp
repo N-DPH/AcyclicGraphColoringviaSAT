@@ -17,7 +17,7 @@ void create_graph(int n,double density, int number){
         }
     }
     Graph::Graph G = Graph::Graph(n,elist.size()/2,elist);
-    std::string filename = "random_instances/random_size_"+std::to_string(n)+"_"+std::to_string(number)+".col";
+    std::string filename = "random_instances/random_size_"+std::to_string(n)+"_"+std::to_string(number)+"_"+std::to_string(density)+".col";
     G.write_dimacs(filename);
 }
 

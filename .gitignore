@@ -7,3 +7,6 @@ npbench/
 *.txt
 *.cvs
 *.xlsx
+*.synctex.gz
+*.log
+*.aux

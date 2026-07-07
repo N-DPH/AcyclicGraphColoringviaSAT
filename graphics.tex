@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable} 
+\pgfplotsset{compat=1.18}
+
+\begin{document}
+	
+	% 1. Safely read your external file
+	\pgfplotstableread[col sep=semicolon]{Evaluating data.csv}\rawdata
+	
+	\begin{tikzpicture}
+		\begin{axis} [
+			ybar,
+			bar width=20pt,
+			ylabel={Time},
+			xlabel={Number vertices and density},
+			% Automatically read category text labels directly from the table
+			xtick=data,
+			xticklabels from table={\rawdata}{catergory},
+			ymin=0, ymax=100,
+			enlarge x limits=0.3
+			]
+			
+			% 2. Clean plot generation using structured table columns
+			\addplot+[
+			error bars/.cd,
+			y dir=both,
+			y explicit
+			] table [
+			x expr=\coordindex, 
+			y=median2,
+			% Dynamically calculate lower and upper error whisker margins
+			y error minus expr=\thisrow{median2}-\thisrow{min},
+			y error plus expr=\thisrow{max}-\thisrow{median2}
+			] {\rawdata};
+			
+		\end{axis}
+	\end{tikzpicture}
+	
+\end{document}
