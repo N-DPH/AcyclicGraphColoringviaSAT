@@ -104,7 +104,7 @@ try{
     //log the time
     std::string filename = "log_";
     filename += std::to_string(G.ncount());
-    filename += ".cvs";
+    filename += ".csv";
     std::ofstream out_file(filename,std::ios::app);
     if(not out_file.is_open()){
         throw std::runtime_error("Unable to open file to write log to");

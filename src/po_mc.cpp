@@ -7,74 +7,85 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <tuple>
 #include <queue>
 #include <ctime>
 #include "../cadical/src/cadical.hpp"
 
 void PartialOrder::find_cycle_mc(Graph::Graph &G, int k, std::vector<int> colour, std::vector<std::vector<int>> &cycles){
-	std::set<std::pair<int,int>> existing_pairs;
+	std::vector<std::tuple<int,int,int>> counting_pairs = std::vector<std::tuple<int,int,int>>(k*k,std::make_tuple(0,0,-1));
 	std::vector<Graph::VertexType> edges = G.elist();
 	Graph::NeighborList neighbors = G.get_neighbor_list();
 	for(int i=0; i<G.ecount();i++){
 		int lower_colour = std::min(colour[edges[2*i]],colour[edges[2*i+1]]);
 		int higher_colour = std::max(colour[edges[2*i]],colour[edges[2*i+1]]);
-		existing_pairs.emplace(std::make_pair(lower_colour,higher_colour));
+		if(std::get<2>(counting_pairs[lower_colour*k+higher_colour])==-1){
+			counting_pairs[lower_colour*k+higher_colour] = std::make_tuple(lower_colour,higher_colour,1);
+		}
+		else{
+			counting_pairs[lower_colour*k+higher_colour] = std::make_tuple(lower_colour,higher_colour,std::get<2>(counting_pairs[lower_colour*k+higher_colour])+1);
+		}
 	}
+	std::sort(begin(counting_pairs), end(counting_pairs), [](auto const &t1, auto const &t2) {return std::get<2>(t1) < std::get<2>(t2); });
+	
+	
 	//to not get weird overlapping cycles
 	std::vector<bool> in_cycle = std::vector<bool>(G.ncount(),false);
 	std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
 	std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
-	for(std::pair<int,int> p : existing_pairs){
-		std::fill(visited.begin(), visited.end(),false);
-		std::fill(parent.begin(),parent.end(),-1); 
-		for(int i=0;i<G.ncount();i++){
-			if(!in_cycle[i] && !visited[i] && (colour[i]==p.first || colour[i]==p.second)){
-				std::queue<int> q;
-				q.push(i);
-				while(!q.empty()){
-					int v = q.front();
-					q.pop();
-					for(auto w : neighbors[v]){
-						if(!in_cycle[w] && w != parent[v] && visited[w] && (colour[w]==p.first || colour[w]==p.second)){
-							std::vector<int> cycle= std::vector<int>(0);
-							cycle.push_back(w);
-							in_cycle[w]=true;
-							cycle.push_back(v);
-							in_cycle[v]=true;
-							w=parent[w];
-							cycle.push_back(w);
-							in_cycle[w]=true;
-							w = parent[w];
-							v=parent[v];
-							while(w != v){
+	for(std::tuple<int,int,int> p : counting_pairs){
+		if(std::get<2>(p)!=0){
+			std::fill(visited.begin(), visited.end(),false);
+			std::fill(parent.begin(),parent.end(),-1); 
+			for(int i=0;i<G.ncount();i++){
+				if(!in_cycle[i] && !visited[i] && (colour[i]==std::get<0>(p) || colour[i]==std::get<1>(p))){
+					std::queue<int> q;
+					q.push(i);
+					while(!q.empty()){
+						int v = q.front();
+						q.pop();
+						for(auto w : neighbors[v]){
+							if(!in_cycle[w] && w != parent[v] && visited[w] && (colour[w]==std::get<0>(p) || colour[w]==std::get<1>(p))){
+								std::vector<int> cycle= std::vector<int>(0);
+								cycle.push_back(w);
+								in_cycle[w]=true;
 								cycle.push_back(v);
 								in_cycle[v]=true;
+								w=parent[w];
 								cycle.push_back(w);
 								in_cycle[w]=true;
 								w = parent[w];
 								v=parent[v];
+								while(w != v){
+									cycle.push_back(v);
+									in_cycle[v]=true;
+									cycle.push_back(w);
+									in_cycle[w]=true;
+									w = parent[w];
+									v=parent[v];
+								}
+								cycle.push_back(v);
+								in_cycle[v]=true;
+								cycles.push_back(cycle);//should work because we only have even cycles
+								//resetting everything so that we can find further cycles
+								while(!q.empty()){
+									v=q.front();
+									q.pop();
+								}
+								std::fill(visited.begin(), visited.end(),false);
+								std::fill(parent.begin(),parent.end(),-1);
+								break;
 							}
-							cycle.push_back(v);
-							in_cycle[v]=true;
-							cycles.push_back(cycle);//should work because we only have even cycles
-							//resetting everything so that we can find further cycles
-							while(!q.empty()){
-								v=q.front();
-								q.pop();
+							if(!in_cycle[w] && w != parent[v] && (colour[w]==std::get<0>(p) || colour[w]==std::get<1>(p))){
+								visited[w]=true;
+								parent[w]=v;
+								q.push(w);
 							}
-							std::fill(visited.begin(), visited.end(),false);
-							std::fill(parent.begin(),parent.end(),-1);
-							break;
-						}
-						if(!in_cycle[w] && w != parent[v] && (colour[w]==p.first || colour[w]==p.second)){
-							visited[w]=true;
-							parent[w]=v;
-							q.push(w);
 						}
 					}
 				}
+				else{visited[i]=true;}
 			}
-			else{visited[i]=true;}
 		}
 	}
 	return;
