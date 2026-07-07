@@ -6,3 +6,4 @@ cadical/
 npbench/
 *.txt
 *.cvs
+*.xlsx
