@@ -5,7 +5,7 @@ CliSAT/
 cadical/
 npbench/
 *.txt
-*.cvs
+*.csv
 *.xlsx
 *.synctex.gz
 *.log

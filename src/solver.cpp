@@ -11,6 +11,7 @@
 #include "po_oc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
+#include "preprocessing_it.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -18,8 +19,10 @@ try{
     if(argc<2){throw std::runtime_error("No file given");}
     if(argc==2){std::cout<<"No flags specified so we use the standard -po -oc"<<std::endl;}
 	if(argc==3){std::cout<<"Using the flag -oc"<<std::endl;}
+    
     std::clock_t t_start = std::clock();
     Graph::Graph G =  Graph::Graph(argv[1]);
+    int n = G.ncount();
     std::clock_t t_read_graph = std::clock();
     std::cout<<"Time for reading the graph "<< 1000.0*(t_read_graph - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl;
 
@@ -28,10 +31,17 @@ try{
     std::cout<<"Lower bound found "<<lb<<std::endl;
     std::cout<<"Time for computing lower bound "<< 1000.0 *(t_lb - t_read_graph) / CLOCKS_PER_SEC<<"ms."<<std::endl;
 
+    int r_local = preprocessing(G,lb);
+    int r = r_local;
+    while(r_local!=0){r_local=preprocessing(G,lb);r+=r_local;} //repeat until nothing changes
+    std::clock_t t_pre = std::clock();
+    std::cout<<"Preprocessing removed "<<r <<" vertices"<<std::endl;
+    std::cout<<"Time for preprocessing "<< 1000.0 *(t_pre - t_lb) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+
     int ub = acyclic_dsatur(G);
     std::clock_t t_ub = std::clock();
     std::cout<<"Upper bound found "<<ub<<std::endl;
-    std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_lb) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+    std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_pre) / CLOCKS_PER_SEC<<"ms."<<std::endl;
 
     if(ub==lb){
         std::cout<<"The lower bound is equal to the upper bound."<<std::endl<<"The colouring number is "<< lb<<std::endl;
@@ -116,13 +126,13 @@ try{
     
     //log the time
     std::string filename = "log_";
-    filename += std::to_string(G.ncount());
+    filename += std::to_string(n);
     filename += ".csv";
     std::ofstream out_file(filename,std::ios::app);
     if(not out_file.is_open()){
         throw std::runtime_error("Unable to open file to write log to");
     }
-    out_file << "n"<<G.ncount()<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+    out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
     out_file.close();
 
     return 0;
