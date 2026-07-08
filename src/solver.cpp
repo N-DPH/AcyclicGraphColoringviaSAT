@@ -8,6 +8,7 @@
 #include "as_mc.hpp"
 #include "po_fv.hpp"
 #include "po_mc.hpp"
+#include "po_oc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 
@@ -15,8 +16,8 @@ int main(int argc, char *argv[]){
 
 try{
     if(argc<2){throw std::runtime_error("No file given");}
-    if(argc==2){std::cout<<"No flags specified so we use the standard -po -mc"<<std::endl;}
-	if(argc==3){std::cout<<"Using the flag -mc"<<std::endl;}
+    if(argc==2){std::cout<<"No flags specified so we use the standard -po -oc"<<std::endl;}
+	if(argc==3){std::cout<<"Using the flag -oc"<<std::endl;}
     std::clock_t t_start = std::clock();
     Graph::Graph G =  Graph::Graph(argv[1]);
     std::clock_t t_read_graph = std::clock();
@@ -40,7 +41,13 @@ try{
     int colouring_number = 0;
     for(int i = ub-1 ; i>=lb ; i--){
         if(argc==2 || std::string(argv[2])=="-po"){
-            if(argc<=3 || std::string(argv[3])=="-mc"){
+            if(argc<=3 || std::string(argv[3])=="-oc"){
+                if(PartialOrder::solve_oc(G,i)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[3])=="-mc"){
                 if(PartialOrder::solve_mc(G,i)==1){
                     colouring_number= i+1;
                     break;
@@ -75,7 +82,13 @@ try{
         }
         else if(argc==3){
             std::cout<<"Only the version not the assignment specified using -po as standard"<<std::endl;
-            if(std::string(argv[2])=="-mc"){
+            if(std::string(argv[2])=="-oc"){
+                if(PartialOrder::solve_oc(G,i)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
+            else if(std::string(argv[2])=="-mc"){
                 if(PartialOrder::solve_mc(G,i)==1){
                     colouring_number= i+1;
                     break;
