@@ -16,6 +16,7 @@ for the version of that assignment:
     -fv for first version, nothing special
     -mc for finding several cycles
     -oc for ordered cycles meaning the colour pairs are sorted according to occurence before looking for cycles
+    -rc for remembering cycle found in previous iterations and immediatly including them
 
     THEY SHOULD BE AT THE END OF THE COMMAND
 

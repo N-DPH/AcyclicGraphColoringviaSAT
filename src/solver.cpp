@@ -9,6 +9,7 @@
 #include "po_fv.hpp"
 #include "po_mc.hpp"
 #include "po_oc.hpp"
+#include "po_rc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 #include "preprocessing_it.hpp"
@@ -19,7 +20,7 @@ int main(int argc, char *argv[]){
 try{
     if(argc<2){throw std::runtime_error("No file given");}
     if(argc==2){std::cout<<"No flags specified so we use the standard -po -oc"<<std::endl;}
-	if(argc==3){std::cout<<"Using the flag -oc"<<std::endl;}
+	if(argc==3){std::cout<<"Using the flag -rc"<<std::endl;}
     
     std::clock_t t_start = std::clock();
     Graph::Graph G =  Graph::Graph(argv[1]);
@@ -50,9 +51,16 @@ try{
         return 0;
     }
     int colouring_number = 0;
+    std::vector<std::vector<int>> cycles_found;
     for(int i = ub-1 ; i>=lb ; i--){
         if(argc==2 || std::string(argv[2])=="-po"){
-            if(argc<=3 || std::string(argv[3])=="-oc"){
+            if(argc<=3 || std::string(argv[3])=="-rc"){
+                if(PartialOrder::solve_rc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[3])=="-oc"){
                 if(PartialOrder::solve_oc(G,i)==1){
                     colouring_number= i+1;
                     break;
@@ -93,7 +101,13 @@ try{
         }
         else if(argc==3){
             std::cout<<"Only the version not the assignment specified using -po as standard"<<std::endl;
-            if(std::string(argv[2])=="-oc"){
+            if(std::string(argv[2])=="-rc"){
+                if(PartialOrder::solve_rc(G,i, cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
+            else if(std::string(argv[2])=="-oc"){
                 if(PartialOrder::solve_oc(G,i)==1){
                     colouring_number= i+1;
                     break;
@@ -133,7 +147,7 @@ try{
     if(not out_file.is_open()){
         throw std::runtime_error("Unable to open file to write log to");
     }
-    out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+    out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[3])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
     out_file.close();
 
     return 0;

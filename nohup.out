@@ -76,3 +76,24 @@ read failed 9: Bad file descriptor
 read failed 9: Bad file descriptor
 read failed 9: Bad file descriptor
 read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+read failed 9: Bad file descriptor
+./test.sh: 8: t: not found
+./test.sh: 9: Syntax error: "done" unexpected
