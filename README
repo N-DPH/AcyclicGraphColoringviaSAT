@@ -18,6 +18,7 @@ for the version of that assignment (note that not all combinations exists):
     -mc for finding several cycles
     -oc for ordered cycles meaning the colour pairs are sorted according to occurence before looking for cycles
     -rc for remembering cycle found in previous iterations and immediatly including them
+    -ac for all combinations i.e. alle permutations of a cycle get forbidden
 
     THEY SHOULD BE AT THE END OF THE COMMAND
 

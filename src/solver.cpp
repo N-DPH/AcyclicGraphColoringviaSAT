@@ -10,6 +10,7 @@
 #include "po_mc.hpp"
 #include "po_oc.hpp"
 #include "po_rc.hpp"
+#include "po_ac.hpp"
 #include "rp_rc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]){
 try{
     if(argc<2){throw std::runtime_error("No file given");}
     if(argc==2){std::cout<<"No flags specified so we use the standard -rp -rc"<<std::endl;}
-	if(argc==3){std::cout<<"Using the flag -rc"<<std::endl;}
+	if(argc==3){std::cout<<"Using the flag -ac"<<std::endl;}
     
     std::clock_t t_start = std::clock();
     Graph::Graph G =  Graph::Graph(argv[1]);
@@ -66,7 +67,13 @@ try{
             }
         }
         else if(argc==2 || std::string(argv[2])=="-po"){
-            if(argc<=3 || std::string(argv[3])=="-rc"){
+            if(argc<=3 || std::string(argv[3])=="-ac"){
+                if(PartialOrder::solve_ac(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(argc<=3 || std::string(argv[3])=="-rc"){
                 if(PartialOrder::solve_rc(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
@@ -113,7 +120,13 @@ try{
         }
         else if(argc==3){
             std::cout<<"Only the version not the assignment specified using -po as standard"<<std::endl;
-            if(std::string(argv[2])=="-rc"){
+            if(std::string(argv[2])=="-ac"){
+                if(PartialOrder::solve_ac(G,i, cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
+            else if(std::string(argv[2])=="-rc"){
                 if(PartialOrder::solve_rc(G,i, cycles_found)==1){
                     colouring_number= i+1;
                     break;
