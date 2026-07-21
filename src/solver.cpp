@@ -10,6 +10,7 @@
 #include "po_mc.hpp"
 #include "po_oc.hpp"
 #include "po_rc.hpp"
+#include "rp_rc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 #include "preprocessing_it.hpp"
@@ -19,7 +20,7 @@ int main(int argc, char *argv[]){
 
 try{
     if(argc<2){throw std::runtime_error("No file given");}
-    if(argc==2){std::cout<<"No flags specified so we use the standard -po -oc"<<std::endl;}
+    if(argc==2){std::cout<<"No flags specified so we use the standard -rp -rc"<<std::endl;}
 	if(argc==3){std::cout<<"Using the flag -rc"<<std::endl;}
     
     std::clock_t t_start = std::clock();
@@ -45,15 +46,26 @@ try{
     std::cout<<"Upper bound found "<<ub<<std::endl;
     std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_pre) / CLOCKS_PER_SEC<<"ms."<<std::endl;
 
-    if(ub==lb){
-        std::cout<<"The lower bound is equal to the upper bound."<<std::endl<<"The colouring number is "<< lb<<std::endl;
+    if(ub<=lb){
+        std::cout<<"After preprocessing the upper bound is lower or equal to the lower bound."<<std::endl<<"The colouring number is "<< lb<<std::endl;
         std::cout<<"Time for whole program "<< 1000.0 *(t_ub - t_start) / CLOCKS_PER_SEC<<"ms."<<std::endl<<std::endl;
         return 0;
     }
     int colouring_number = 0;
     std::vector<std::vector<int>> cycles_found;
     for(int i = ub-1 ; i>=lb ; i--){
-        if(argc==2 || std::string(argv[2])=="-po"){
+        if(argc==2 || std::string(argv[2])=="-rp"){
+            if(argc<=3 || std::string(argv[3])=="-rc"){
+                if(PartialOrder::solve_rc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else{
+                throw std::runtime_error("The flag "+std::string(argv[3])+" does not exist");
+            }
+        }
+        else if(argc==2 || std::string(argv[2])=="-po"){
             if(argc<=3 || std::string(argv[3])=="-rc"){
                 if(PartialOrder::solve_rc(G,i,cycles_found)==1){
                     colouring_number= i+1;
@@ -140,15 +152,25 @@ try{
     std::cout<<"Time for the whole program "<<1000.0*(t_end-t_start)/CLOCKS_PER_SEC <<"ms."<<std::endl<<std::endl;
     
     //log the time
-    std::string filename = "log_";
+    std::string filename = "logs_results/log_";
     filename += std::to_string(n);
     filename += ".csv";
     std::ofstream out_file(filename,std::ios::app);
     if(not out_file.is_open()){
         throw std::runtime_error("Unable to open file to write log to");
     }
-    out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[3])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
-    out_file.close();
+    if(argc<=2){
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+        out_file.close();
+    }
+    else if(argc<=3){
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+        out_file.close();
+    }
+    else{
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<std::string(argv[3])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
+        out_file.close();
+    }
 
     return 0;
 }

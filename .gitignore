@@ -4,6 +4,7 @@ first_try/
 CliSAT/
 cadical/
 npbench/
+logs_results/
 *.txt
 *.csv
 *.xlsx
