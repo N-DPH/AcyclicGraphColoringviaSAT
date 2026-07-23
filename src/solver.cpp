@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 try{
     if(argc<2){throw std::runtime_error("No file given");}
     if(argc==2){std::cout<<"No flags specified so we use the standard -rp -rc"<<std::endl;}
-	if(argc==3){std::cout<<"Using the flag -ac"<<std::endl;}
+	if(argc==3){std::cout<<"Using the flag -rc"<<std::endl;}
     
     std::clock_t t_start = std::clock();
     Graph::Graph G =  Graph::Graph(argv[1]);
@@ -67,14 +67,14 @@ try{
             }
         }
         else if(argc==2 || std::string(argv[2])=="-po"){
-            if(argc<=3 || std::string(argv[3])=="-ac"){
-                if(PartialOrder::solve_ac(G,i,cycles_found)==1){
+            if(argc<=3 || std::string(argv[3])=="-rc"){
+                if(PartialOrder::solve_rc(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }    
             }
-            else if(argc<=3 || std::string(argv[3])=="-rc"){
-                if(PartialOrder::solve_rc(G,i,cycles_found)==1){
+            else if(std::string(argv[3])=="-ac"){
+                if(PartialOrder::solve_ac(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }    
@@ -120,14 +120,14 @@ try{
         }
         else if(argc==3){
             std::cout<<"Only the version not the assignment specified using -po as standard"<<std::endl;
-            if(std::string(argv[2])=="-ac"){
-                if(PartialOrder::solve_ac(G,i, cycles_found)==1){
+            if(std::string(argv[2])=="-rc"){
+                if(PartialOrder::solve_rc(G,i, cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }
             }
-            else if(std::string(argv[2])=="-rc"){
-                if(PartialOrder::solve_rc(G,i, cycles_found)==1){
+            else if(std::string(argv[2])=="-ac"){
+                if(PartialOrder::solve_ac(G,i, cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }
@@ -173,18 +173,15 @@ try{
         throw std::runtime_error("Unable to open file to write log to");
     }
     if(argc<=2){
-        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
-        out_file.close();
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<","<<1000*(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
     }
     else if(argc<=3){
-        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
-        out_file.close();
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<","<<1000*(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
     }
     else{
-        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<std::string(argv[3])<<","<<(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
-        out_file.close();
+        out_file << "n"<<n<<"d"<<round(G.density()*10)/10<<std::string(argv[2])<<std::string(argv[3])<<","<<1000*(t_end-t_start)/CLOCKS_PER_SEC<<std::endl;
     }
-
+    out_file.close();
     return 0;
 }
 catch(std::runtime_error e){

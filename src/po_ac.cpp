@@ -28,14 +28,14 @@ void PartialOrder::update_sat_ac(int k,std::vector<int> &colour, std::vector<std
 							solver->add(-(cycle[0]*k+a)),solver->add(cycle[0]*k+a+1);
 							new_clause.push_back(-(cycle[0]*k+a));
 							new_clause.push_back(cycle[0]*k+a+1);
-							//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+							//std::cout<<-(cycle[0]*k+a)<<" , "<<cycle[0]*k+a+1<<" , ";
 						}
 						else{
 							solver->add(cycle[0]*k+1);
 							new_clause.push_back(cycle[0]*k+1);
-							//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+							//std::cout<<cycle[0]*k+1<<" , ";
 						}
-					for(int i=1;i<cycle.size();i+=2){
+					for(int i=1;i<cycle.size()-1;i+=2){
 						if((i/2)%2){
 							if(a>0){
 								solver->add(-(cycle[i]*k+a)),solver->add(cycle[i]*k+a+1);
@@ -44,14 +44,14 @@ void PartialOrder::update_sat_ac(int k,std::vector<int> &colour, std::vector<std
 								solver->add(-(cycle[i+1]*k+a)),solver->add(cycle[i+1]*k+a+1);
 								new_clause.push_back(-(cycle[i+1]*k+a));
 								new_clause.push_back(cycle[i+1]*k+a+1);
-								//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+								//std::cout<<-(cycle[i]*k+a)<<" , "<<cycle[i]*k+a+1<<" , "<<-(cycle[i+1]*k+a)<<" , "<<cycle[i+1]*k+a+1<<" , ";
 							}
 							else{
 								solver->add(cycle[i]*k+1);
 								new_clause.push_back(cycle[i]*k+1);
 								solver->add(cycle[i+1]*k+1);
 								new_clause.push_back(cycle[i+1]*k+1);
-								//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+								//std::cout<<cycle[i]*k+1<<" , "<<cycle[i+1]*k+1<<" , ";
 							}
 						}
 						else{
@@ -62,26 +62,26 @@ void PartialOrder::update_sat_ac(int k,std::vector<int> &colour, std::vector<std
 								solver->add(-(cycle[i+1]*k+b)),solver->add(cycle[i+1]*k+b+1);
 								new_clause.push_back(-(cycle[i+1]*k+b));
 								new_clause.push_back(cycle[i+1]*k+b+1);
-								//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+								//std::cout<<-(cycle[i]*k+b)<<" , "<<cycle[i]*k+b+1<<" , "<<-(cycle[i+1]*k+b)<<" , "<<cycle[i+1]*k+b+1<<" , ";
 							}
 							else{
 								solver->add(cycle[i]*k+1);
 								new_clause.push_back(cycle[i]*k+1);
 								solver->add(cycle[i+1]*k+1);
 								new_clause.push_back(cycle[i+1]*k+1);
-								//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+								//std::cout<<cycle[i]*k+1<<" , "<<cycle[i+1]*k+1<<" , ";
 							}
 						}
 						if(a>0){
 							solver->add(-(cycle[cycle.size()-1]*k+a)),solver->add(cycle[cycle.size()-1]*k+a+1);
 							new_clause.push_back(-(cycle[cycle.size()-1]*k+a));
 							new_clause.push_back(cycle[cycle.size()-1]*k+a+1);
-							//std::cout<<-(cycle[i]*k+colour[cycle[i]])<<" , "<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+							//std::cout<<-(cycle[cycle.size()-1]*k+a)<<" , "<<cycle[cycle.size()-1]*k+a+1<<std::endl;
 						}
 						else{
 							solver->add(cycle[cycle.size()-1]*k+1);
 							new_clause.push_back(cycle[cycle.size()-1]*k+1);
-							//std::cout<<cycle[i]*k+colour[cycle[i]]+1<<" , ";
+							//std::cout<<cycle[cycle.size()-1]*k+1<<std::endl;
 						}
 					}
 					//std::cout<<std::endl;

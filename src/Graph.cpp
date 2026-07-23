@@ -201,6 +201,7 @@ void Graph::read_dimacs(const char *filename) {
         _elist.push_back(head - 1);
         _elist.push_back(tail - 1);
     } while(std::getline(file, line));
+    file.close();
 }
 
 void Graph::read_graph6(const char *filename) {

@@ -11,7 +11,7 @@ The flags for the SAT endcoding are
 for the assignment:
     -as for the standard assignment
     -po for the partial ordering assignment
-    -rp for the representative assigment (already ordered)
+    -rp for the representative assignment (already ordered)
 
 for the version of that assignment (note that not all combinations exists):
     -fv for first version, nothing special
