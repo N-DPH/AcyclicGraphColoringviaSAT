@@ -110,13 +110,13 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 	}
 }
 
-class Propagator_rp::ActivePropagator : CaDiCaL::ExternalPropagator {
+class ActivePropagator : CaDiCaL::ExternalPropagator {
 private:
     CaDiCaL::Solver *solver;
 
     Graph::Graph G;
-    std::vector<std::vector<int>> variables;
     int k;
+    std::vector<std::vector<int>> variables;
     std::map<int,std::pair<int,int>> variables_back;
     std::stack<std::vector<int>> observed_trail;
     //0 is not yet assigned, 1 is true, -1 if not
@@ -147,19 +147,30 @@ public:
 
         assignment_is_rep = std::vector<int>(G.ncount(),0);
         assignment_represented = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),0));
-        // Observe all variables of the encoding
-        for(int i=0;i<G.ncount();i++){
-            solver-> add_observed_var(i+1);
-        }
-        for(int i=0;i<variables.size();i++){
-            for(int j=0;j<variables[i].size();j++){
-                solver->add_observed_var(variables[i][j]);
-                variables_back[variables[i][j]]=std::make_pair(i,j);
-            }
-        }
+        variables_back = std::map<int, std::pair<int,int>>();
+        
         // Create the root-level of the trail. This level needs to be always
         // there.
-        observed_trail.push (std::vector<int> ());
+        observed_trail.push(std::vector<int> ());
+    }
+
+    void observe(){
+        //Observe all variables of the encoding
+        for(int i=0;i<G.ncount();i++){
+            solver->add_observed_var(i+1);
+        }
+        std::vector<int> not_neighbors = G.complement_elist();
+        for(int i=0;i<not_neighbors.size();i+=2){
+            if(not_neighbors[i]<not_neighbors[i+1]){
+                solver->add_observed_var(variables[not_neighbors[i]][not_neighbors[i+1]]);
+                variables_back[variables[not_neighbors[i]][not_neighbors[i+1]]]=std::make_pair(not_neighbors[i],not_neighbors[i+1]);
+            }
+            else{
+                solver->add_observed_var(variables[not_neighbors[i+1]][not_neighbors[i]]);
+                variables_back[variables[not_neighbors[i+1]][not_neighbors[i]]]=std::make_pair(not_neighbors[i+1],not_neighbors[i]);
+            }
+        }
+        return;
     }
 
     ~ActivePropagator () {
@@ -278,7 +289,7 @@ public:
             }
             else{
                 for(int j=0;j<i;j++){
-                    if(model[variables[j][i]]==variables[j][i]){ //j is representative of i (since j<i, j already has a colour)
+                    if(model[variables[j][i]]==(variables[j][i])){ //j is representative of i (since j<i, j already has a colour)
                         representatives[i] = j;
                         colours[i]=colours[j];
                         //std::cout<<i<<" has been given colour "<<colours[j]<<std::endl;
@@ -364,20 +375,21 @@ public:
         // 'cb_propagate' and 'cb_has_external_clause').
         std::cout << "[act-prop][notify_assignment][ ";
         for (const auto lit : lits) {
-        std::cout << lit << " ";
+            std::cout << lit << " ";
 
-        // Add the new assignment to the observed trail
-        observed_trail.top ().push_back (lit);
+            // Add the new assignment to the observed trail
+            observed_trail.top().push_back(lit);
 
-        // Update the maps based on the assignment
-        if(lit<=G.ncount() && lit >=-G.ncount()){
-            assignment_is_rep[abs(lit)]=std::signbit(lit);
-        }
-        else{
-            assignment_represented[variables_back[abs(lit)].first][variables_back[abs(lit)].second]=std::signbit(lit);
-        }
+            // Update the maps based on the assignment
+            if(lit<=G.ncount() && lit >=-G.ncount()){
+                assignment_is_rep[abs(lit)-1]=std::signbit(lit);
+            }
+            else{
+                assignment_represented[variables_back[abs(lit)].first][variables_back[abs(lit)].second]=std::signbit(lit);
+            }
         }
         std::cout << "]" << std::endl;
+        return;
     }
 
     
@@ -386,7 +398,7 @@ public:
         std::cout << "[act-prop][notify_new_decision_level]" << std::endl;
 
         // Create a new decision level on the observed trail
-        observed_trail.push (std::vector<int> ());
+        observed_trail.push(std::vector<int> ());
     }
 
     void notify_backtrack (size_t new_level) override {
@@ -397,17 +409,17 @@ public:
         // Undo all the backtracked assignments on the observed trail and
         // in the assignment maps.
         while (observed_trail.size () > new_level + 1) {
-        for (auto lit : observed_trail.top ()) {
-            std::cout << lit << " ";
+            for (auto lit : observed_trail.top ()) {
+                std::cout << lit << " ";
 
-            if(lit<=G.ncount() && lit >=-G.ncount()){
-                assignment_is_rep[abs(lit)]=0;
+                if(lit<=G.ncount() && lit >=-G.ncount()){
+                    assignment_is_rep[abs(lit)]=0;
+                }
+                else{
+                    assignment_represented[variables_back[abs(lit)].first][variables_back[abs(lit)].second]=0;
+                }
             }
-            else{
-                assignment_represented[variables_back[abs(lit)].first][variables_back[abs(lit)].second]=0;
-            }
-        }
-        observed_trail.pop ();
+            observed_trail.pop ();
         }
         std::cout << "]" << std::endl;
     }
@@ -464,18 +476,21 @@ int Propagator_rp::solve(Graph::Graph &G, int k, std::vector<std::vector<int>> &
 	Propagator_rp::initialize_solver(G,k, solver, previous_cycles, variables);
 	
 	std::clock_t t_before_solve=std::clock();
-    ActivePropagator(solver,G,k,variables);
+    ActivePropagator prop = ActivePropagator(solver,G,k,variables);
+    prop.observe();
     int res = solver->solve();
     std::clock_t t_after_solve=std::clock();
     if(res==10){
         std::cout<<"Acyclic colouring found!"<<std::endl;
         std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve) <<"ms."<<std::endl;
-	    delete solver;
+	    delete &prop;
+        delete solver;
         return 0;
     }
     std::cout<<"Unsatisfiable"<<std::endl;
 	std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve) <<"ms."<<std::endl;
-	delete solver;
+	delete &prop;
+    delete solver;
 	/*std::cout<<"The colouring is:";
 	for(int i=0;i<G.ncount();i++){
 		std::cout<<" "<<colouring[i];

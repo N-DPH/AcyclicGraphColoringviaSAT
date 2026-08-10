@@ -14,6 +14,7 @@
 #include "po_sc.hpp"
 #include "rp_rc.hpp"
 #include "rp_sc.hpp"
+#include "prop_rp.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 #include "preprocessing_it.hpp"
@@ -79,7 +80,15 @@ try{
                 throw std::runtime_error("The flag "+std::string(argv[3])+" does not exist");
             }
         }
-        else if(argc==2 || std::string(argv[2])=="-po"){
+        else if(std::string(argv[2])=="-prop"){
+            if(argc<=3 || std::string(argv[3])=="-rp"){
+                if(Propagator_rp::solve(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+        }
+        else if(std::string(argv[2])=="-po"){
             if(argc<=3 || std::string(argv[3])=="-rc"){
                 if(PartialOrder::solve_rc(G,i,cycles_found)==1){
                     colouring_number= i+1;
