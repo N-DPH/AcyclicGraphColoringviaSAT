@@ -102,7 +102,7 @@ void Representatives::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solv
 
 	//adding all the previous found problem cycles
 	for(auto cycle : found_cycles){
-		if(cycle[0]<k){
+		if(cycle[0]<k  && cycle[0]!=-1){
 			for(int i=1; i<cycle.size();i++){
 				solver->add(i);
 			}
@@ -308,7 +308,7 @@ int Representatives::solve_rc(Graph::Graph &G, int k, std::vector<std::vector<in
 		colouring = read_sol(G,k, solver, variables,representatives);
 		if(try_sol(G,k,colouring)==false){
 			delete solver;
-			std::__throw_runtime_error("The colouring is not valid.");
+			std::runtime_error("The colouring is not valid.");
 		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){

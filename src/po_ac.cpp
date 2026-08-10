@@ -143,7 +143,7 @@ int PartialOrder::solve_ac(Graph::Graph &G, int k, std::vector<std::vector<int>>
 		colouring = read_sol(G,k, solver);
 		if(try_sol(G,k,colouring)==false){
 			delete solver;
-			std::__throw_runtime_error("The colouring is not valid.");
+			std::runtime_error("The colouring is not valid.");
 		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){

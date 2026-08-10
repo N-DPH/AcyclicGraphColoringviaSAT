@@ -12,8 +12,8 @@ rm -f logs_results/results_"$n".txt
 for file in random_instances/*
 do
     echo "$file" >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -po -ac >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -po -rc >> logs_results/results_"$n".txt
+    ./build/acycle "$file" -rp -rc >> logs_results/results_"$n".txt
+    ./build/acycle "$file" -rp -sc >> logs_results/results_"$n".txt
 done
 :<<'END'
 d="5"

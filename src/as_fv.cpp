@@ -191,7 +191,7 @@ int Assignment::solve_fv(Graph::Graph &G, int k) {
 		colouring = read_sol(G,k, solver);
 		if(try_sol(G,k,colouring)==false){
 			delete solver;
-			std::__throw_runtime_error("The colouring is not valid.");
+			std::runtime_error("The colouring is not valid.");
 		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){

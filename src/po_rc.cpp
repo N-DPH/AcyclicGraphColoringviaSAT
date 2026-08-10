@@ -40,7 +40,7 @@ void PartialOrder::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solver 
 	}
 	//adding all the previous found problem cycles
 	for(auto cycle : found_cycles){
-		if(cycle[0]<k){
+		if(cycle[0]<k && cycle[0]!=-1){
 			for(int i=1; i<cycle.size();i++){
 				solver->add(i);
 			}
@@ -125,7 +125,7 @@ int PartialOrder::solve_rc(Graph::Graph &G, int k, std::vector<std::vector<int>>
 		colouring = read_sol(G,k, solver);
 		if(try_sol(G,k,colouring)==false){
 			delete solver;
-			std::__throw_runtime_error("The colouring is not valid.");
+			std::runtime_error("The colouring is not valid.");
 		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){

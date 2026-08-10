@@ -11,11 +11,14 @@
 #include "po_oc.hpp"
 #include "po_rc.hpp"
 #include "po_ac.hpp"
+#include "po_sc.hpp"
 #include "rp_rc.hpp"
+#include "rp_sc.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 #include "preprocessing_it.hpp"
 #include "preprocessing_cl.hpp"
+#include "small_cycle.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -54,10 +57,20 @@ try{
     }
     int colouring_number = 0;
     std::vector<std::vector<int>> cycles_found;
+    find_small_cycles(G,cycles_found);
+    std::clock_t t_cycles = std::clock();
+    std::cout<<"Found "<<cycles_found.size()<<" many small cycles."<<std::endl;
+    std::cout<<"Time for computing small cycles "<< 1000.0 *(t_cycles - t_ub) / CLOCKS_PER_SEC<<"ms."<<std::endl;
     for(int i = ub-1 ; i>=lb ; i--){
         if(argc==2 || std::string(argv[2])=="-rp"){
             if(argc<=3 || std::string(argv[3])=="-rc"){
                 if(Representatives::solve_rc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[3])=="-sc"){
+                if(Representatives::solve_sc(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }    
@@ -69,6 +82,12 @@ try{
         else if(argc==2 || std::string(argv[2])=="-po"){
             if(argc<=3 || std::string(argv[3])=="-rc"){
                 if(PartialOrder::solve_rc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[3])=="-sc"){
+                if(PartialOrder::solve_sc(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }    
@@ -126,6 +145,12 @@ try{
                     break;
                 }
             }
+            else if(std::string(argv[2])=="-sc"){
+                if(PartialOrder::solve_sc(G,i, cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
             else if(std::string(argv[2])=="-ac"){
                 if(PartialOrder::solve_ac(G,i, cycles_found)==1){
                     colouring_number= i+1;
@@ -161,7 +186,7 @@ try{
     if(colouring_number==0){colouring_number=lb;}
     std::cout<<"The colouring number is "<<colouring_number<<std::endl;
     std::clock_t t_end = std::clock();
-    std::cout<<"Time for finding actual colouring number "<< 1000.0*(t_end - t_ub) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+    std::cout<<"Time for finding actual colouring number "<< 1000.0*(t_end - t_cycles) / CLOCKS_PER_SEC<<"ms."<<std::endl;
     std::cout<<"Time for the whole program "<<1000.0*(t_end-t_start)/CLOCKS_PER_SEC <<"ms."<<std::endl<<std::endl;
     
     //log the time
