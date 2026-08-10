@@ -10,6 +10,8 @@ namespace Representatives{
 
     std::vector<int> read_sol(Graph::Graph &G, int k, CaDiCaL::Solver *solver, std::vector<std::vector<int>> &variables,std::vector<int> &representatives);
 
+    bool try_sol(Graph::Graph &G, int k, std::vector<int> colour);
+
     void find_cycle_rc(Graph::Graph &G, int k, std::vector<int> colour, std::vector<std::vector<int>> &cycles);
 
     void update_sat_rc(int k,std::vector<int> &colour, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles, std::vector<std::vector<int>> &variables, std::vector<int> &representatives);

@@ -1,0 +1,116 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{algorithm} 
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{mathtools}
+ 
+\begin{document} 
+	\begin{algorithm}
+		\caption{General Approach for Graph $G$} 
+		\begin{algorithmic}[1]
+			\State $lb =$ find lower bound $(G)$
+			\State preprocessing $(G, lb)$
+			\State $ub=$ find upper bound $(G)$
+			\For {$k=ub-1,\ldots,lb$}
+			\State Initialize SAT $(G,k)$
+			\State sat $=$ Solve SAT
+			\While{sat $=$ true and $\exists$bicolored cycle}
+			\State Update SAT $(G,k,cycle)$
+			\State sat $=$ Solve SAT
+			\EndWhile
+			\If {sat $=$ false}
+			\State return $k+1$
+			\EndIf
+			\EndFor
+			\State return $lb$
+		\end{algorithmic} 
+	\end{algorithm}
+	
+	We have several ways of finding cycles. Though all rely on a simple BFS.
+
+\section{Assignment model}
+
+Have $n\cdot k$ variables. With $x_{v,i}=\begin{cases*}$1$ & if $v$ has the color $i$\\ 0 & else\end{cases*}$. Then we have the following conditions for standard coloring: 
+
+\begin{alignat*}{2}
+	&\sum_{i=0}^{k}x_{v,i}=1 &\forall v\in V\\
+	&x_{v,i}+x_{w,i}\leq 1 &\forall \{v,w\}\in E,\forall i\in \{1,...,k\}
+\end{alignat*}\\
+
+As logic formula this corresponds to the conjunction of the following clauses
+
+\begin{alignat*}{2}
+	&\bigvee_{i=0}^{k}x_{v,i} &\forall v\in V\\
+	&\neg x_{v,i}\vee \neg x_{v,j} &\forall v\in V,\forall i<j\in\{1,...,k\}\\
+	&\neg x_{v,i}\vee\neg x_{w,i} &\forall \{v,w\}\in E,\forall i\in \{1,...,k\}
+\end{alignat*}\\
+
+To forbid a cycle $C=(c_1,...c_l)\subseteq V$, we then add the clauses
+
+\begin{alignat*}{2}
+	&\bigvee_{s=1,3,5,..l-1}\neg x_{c_s,i}\vee\bigvee_{s=2,4,6,..l}\neg x_{c_s,j} &\forall i\neq j\in\{1,...,k\}
+\end{alignat*}
+
+\section{Partial-ordering model}
+
+Have $n\cdot k$ variables. We assume an ordering on the colors (by naming them in $\{1,...,k\}$) and then $x_{v,i}=\begin{cases*}$1$ & if $v$ has a color bigger than $i$\\ 0 & if $v$ has a color smaller or equal to $i$\end{cases*}$. So every vertex will be assigned the color with $x_{v,i-1}-x_{v,i}=1$. Then we have the following conditions for standard coloring: 
+
+\begin{alignat*}{2}
+	&x_{v,k}=0 &\forall v\in V\\
+	&x_{v,i}-x_{v,i+1}\geq 0 &\forall v\in V,\forall i\in\{1,...,k-1\}\\
+	&x_{v,1}+x_{w,1}\geq 1 &\forall \{v,w\}\in E\\
+	&x_{v,i-1}-x_{v,i}+x_{w,i-1}-x_{i}\leq 1 &\forall \{v,w\}\in E,\forall i\in \{2,...,k\}
+\end{alignat*}\\
+
+As logic formula this corresponds to the conjunction of the following clauses
+
+\begin{alignat*}{2}
+	&\neg x_{v,k} &\forall v\in V\\
+	&x_{v,i}\vee\neg x_{v,i+1} &\forall v\in V,\forall i\in\{1,...,k-1\}\\
+	&x_{v,1}\vee x_{w,1} &\forall \{v,w\}\in E\\
+	&\neg x_{v,i-1}\vee x_{v,i}\vee\neg x_{w,i-1}\vee x_{i} &\forall \{v,w\}\in E,\forall i\in \{2,...,k\}
+\end{alignat*}\\
+
+To forbid a cycle $C=(c_1,...c_l)\subseteq V$, we then add the clauses
+
+\begin{alignat*}{2}
+	&\bigvee_{s=1,3,5,..l-1}\neg x_{c_s,i-1}\vee x_{c_s,i}\vee\bigvee_{s=2,4,6,..l}\neg x_{c_s,j-1}\vee x_{c_s,j} &\forall i\neq j\in\{1,...,k\}
+\end{alignat*}
+though, if one color w.l.o.g $i$ is $1$, there is no $x_{c_s,i-1}$ so leave that part out and just require $x_{c_s,i}$.
+
+\section{Representatives model}
+
+Have three types of variables. First $n$ many $x_u$, where $x_u=\begin{cases*}$1$ & if $v$ is a representative\\ 0 & else\end{cases*}$. Then secondly, $O(n^2m)$ many where for $u<v$ not adjacent we have $x_{uv}=\begin{cases*}$1$ & $u$ represents $v$\\ 0 & else\end{cases*}$. We want $k$ many color classes each having one representative. So we want $k$ representatives and all other vertices should be represented by one of them. We also assume an ordering on the vertices and only allow the smallest vertex in each color class to be the representative. This eliminates the symmetry we would have in the choice of the representative and the symmetry we have in assigning the colors. With just these two, we can write a set of equations to describe the coloring problem where $\overline{N}(v)$ is the set of vertices that are non-adjacent to $v$:
+
+\begin{alignat*}{2}
+	&\sum_{u<v\in \overline{N}(v)}x_{uv}+x_v = 1 &\forall v\in V\\
+	&x_{uv}+x_{wu}\leq 1&\forall w<u<v\in V\\
+	&x_{uv}+x_{uw}\leq x_u&\forall \{v,w\}\in E\forall u\in V:u<v,u<w
+\end{alignat*}\\
+
+As logic formula this corresponds to the conjunction of the following clauses
+
+\begin{alignat*}{2}
+	&x_v\bigvee_{u<v\in\overline{N}(v)} x_{uv} &\forall v\in V\\
+	&\neg x_{uv}\vee \neg x_{wu}&\forall w<u<v\in V\\
+	&x_u\vee\neg x_{uv}&\forall u<v\in V\\
+	&\neg x_{uv}\vee\neg x_{uw}&\forall \{v,w\}\in E\forall u\in V:u<v,u<w
+\end{alignat*}\\
+
+To forbid a cycle $C=(c_1,...c_l)\subseteq V$ where $v$ is representative of $c_1$ and $w$ represents $c_2$, we then add the clauses
+
+\begin{alignat*}{2}
+	&\bigvee_{s=1,3,...}\neg x_{v,c_s}\vee\bigvee_{s=2,4,...}\neg x_{w,c_s} 
+\end{alignat*}
+though, if one of the vertices $u$ in the cycle is a representative, instead of $\neg x_{u,u}$ we add $\neg x_u$\\
+
+This leaves the problem of requiring, that at most $k$ many color classes i.e. representatives exist. For this we use the third set of variables $s_{j,i}=\begin{cases*}$1$ & $\{x_1,..x_j\}$ contains at least $i$ many $1$\\ 0 & else\end{cases*}$ and the following equations:
+\begin{alignat*}{2}
+	&s_{1,1}=1 &\\
+	&s_{1,i}=0 &\forall 2\leq i\leq k+1\\
+	&s_{j-1,i}\leq s_{j,i} &\forall 2\leq j\leq n\forall 1\leq i\leq k+1\\
+	&s_{j-1,i-1}+x_j\leq s_{j,i} &\forall 2\leq j\leq n\forall 1\leq i \leq k+1\\
+	&s_{n,k+1}=0&\\
+\end{alignat*}\\
+
+\end{document}

@@ -66,6 +66,19 @@ std::vector<int> Assignment::read_sol(Graph::Graph &G, int k, CaDiCaL::Solver *s
     return colours;
 }
 
+bool Assignment::try_sol(Graph::Graph &G, int k, std::vector<int> colour){
+	std::vector<int> edges = G.elist();
+	for(int i=0;i<G.ecount();i++){
+		if(colour[edges[2*i]]>=k){
+			return false;
+		}
+		if(colour[edges[2*i]]==colour[edges[2*i+1]]){
+			return false;
+		}
+	}
+	return true;
+}
+
 std::vector<int> Assignment::find_cycle(Graph::Graph &G, int k, std::vector<int> colour){
 	std::set<std::pair<int,int>> existing_pairs;
 	std::vector<Graph::VertexType> edges = G.elist();
@@ -176,7 +189,10 @@ int Assignment::solve_fv(Graph::Graph &G, int k) {
 			return 1;
 		}
 		colouring = read_sol(G,k, solver);
-
+		if(try_sol(G,k,colouring)==false){
+			delete solver;
+			std::__throw_runtime_error("The colouring is not valid.");
+		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){
 			std::cout<<" "<<colouring[i];

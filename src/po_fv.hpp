@@ -11,6 +11,8 @@ void initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver);
 
 std::vector<int> read_sol(Graph::Graph &G, int k, CaDiCaL::Solver *solver);
 
+bool try_sol(Graph::Graph &G, int k, std::vector<int> colour);
+
 std::vector<int> find_cycle(Graph::Graph &G, int k, std::vector<int> colour);
 
 void update_sat(int k,std::vector<int> &colour, std::vector<int> &cycle, CaDiCaL::Solver *solver);
