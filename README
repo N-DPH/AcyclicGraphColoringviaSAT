@@ -1,8 +1,11 @@
 CaDiCaL should be installed and the include links in the Makefile updated.
-Then 'make' creates two executables.
+Then 'make' creates three executables.
 
 Usage is './build/random_generator number size density'
 to create number many random graphs with size many vertices and given density in the folder random_instances.
+
+Usage is './build/check_results result_filename'
+to check if all the colouring numbers found by different variants but saved in the results file match
 
 Usage is './build/acycle filename'
 to find the colouring number.

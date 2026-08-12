@@ -143,11 +143,11 @@ bool Representatives::try_sol(Graph::Graph &G, int k, std::vector<int> colour){
 	std::vector<int> edges = G.elist();
 	for(int i=0;i<G.ecount();i++){
 		if(colour[edges[2*i]]>=k || colour[edges[2*i+1]]>=k){
-			std::runtime_error("The colouring uses more colours");
+			throw std::runtime_error("The colouring uses more colours");
 			return false;
 		}
 		if(colour[edges[2*i]]==colour[edges[2*i+1]]){
-			std::runtime_error("The colouring is not valid");
+			throw std::runtime_error("The colouring is not valid");
 			return false;
 		}
 	}
@@ -312,7 +312,7 @@ try{
 		colouring = read_sol(G,k, solver, variables,representatives);
 		if(try_sol(G,k,colouring)==false){
 			delete solver;
-			std::runtime_error("The colouring is not valid.");
+			throw std::runtime_error("The colouring is not valid.");
 		}
 		/*std::cout<<"The colouring so far:";
 		for(int i=0;i<G.ncount();i++){

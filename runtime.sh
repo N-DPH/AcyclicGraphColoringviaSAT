@@ -15,6 +15,8 @@ do
     ./build/acycle "$file" -prop -rp >> logs_results/results_"$n".txt
     ./build/acycle "$file" -rp -rc >> logs_results/results_"$n".txt
 done
+
+./build/check_results logs_results/results_"$n".txt
 :<<'END'
 d="5"
 

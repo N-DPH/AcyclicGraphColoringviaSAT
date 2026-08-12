@@ -174,11 +174,11 @@ public:
         std::vector<int> edges = G.elist();
         for(int i=0;i<G.ecount();i++){
             if(colour[edges[2*i]]>=k || colour[edges[2*i+1]]>=k){
-                std::runtime_error("The colouring usese more than k colours");
+                throw std::runtime_error("The colouring usese more than k colours");
                 return false;
             }
             if(colour[edges[2*i]]==colour[edges[2*i+1]]){
-                std::runtime_error("The colouring is not valid");
+                throw std::runtime_error("The colouring is not valid");
                 return false;
             }
         }
