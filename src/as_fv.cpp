@@ -70,9 +70,11 @@ bool Assignment::try_sol(Graph::Graph &G, int k, std::vector<int> colour){
 	std::vector<int> edges = G.elist();
 	for(int i=0;i<G.ecount();i++){
 		if(colour[edges[2*i]]>=k){
+			std::runtime_error("The colouring uese more than k colours");
 			return false;
 		}
 		if(colour[edges[2*i]]==colour[edges[2*i+1]]){
+			std::runtime_error("The colouring is not valid");
 			return false;
 		}
 	}
@@ -177,6 +179,7 @@ bool Assignment::check_colouring(Graph::Graph &G, int k, std::vector<int> colour
 int Assignment::solve_fv(Graph::Graph &G, int k) {
 	
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
+try{
 	initialize_solver(G,k, solver);
 	int res;
 	bool no_cycle = false;
@@ -209,4 +212,15 @@ int Assignment::solve_fv(Graph::Graph &G, int k) {
 	}
 	std::cout<<std::endl;*/
 	return 0;
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    delete solver;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown exception caught."<<std::endl;
+    delete solver;
+    return 1;
+}
 }

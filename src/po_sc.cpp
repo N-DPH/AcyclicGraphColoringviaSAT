@@ -76,6 +76,7 @@ void PartialOrder::initialize_solver_sc(Graph::Graph &G, int k, CaDiCaL::Solver 
 int PartialOrder::solve_sc(Graph::Graph &G, int k, std::vector<std::vector<int>> &previous_cycles) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
+try{
 	initialize_solver_sc(G,k, solver, previous_cycles);
 	int res;
 	bool no_cycle = false;
@@ -126,5 +127,15 @@ int PartialOrder::solve_sc(Graph::Graph &G, int k, std::vector<std::vector<int>>
 	}
 	std::cout<<std::endl;*/
 	return 0;
-	
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    delete solver;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown exception caught."<<std::endl;
+    delete solver;
+    return 1;
+}	
 }

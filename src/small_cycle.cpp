@@ -19,7 +19,10 @@ void find_small_cycles(Graph::Graph &G, std::vector<std::vector<int>> &cycles){
                         parent[w]=v;
                     }
                     else if(w>i &&parent[w]!=i && visited[w]==true){
-                        cycles.push_back({-1,i,v,parent[w],w});
+                        //only add the cycle if it has no cross edges (if it does, it automatically needs to have 3 colours)
+                        if(std::find(neighbors[i].begin(),neighbors[i].end(),w)==neighbors[i].end() && std::find(neighbors[v].begin(),neighbors[v].end(),parent[w])==neighbors[v].end()){
+                            cycles.push_back({-1,i,v,parent[w],w});
+                        }
                     }
                 }
             }

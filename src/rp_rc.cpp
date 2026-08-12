@@ -19,10 +19,12 @@ void Representatives::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solv
 	for(int i=0;i<not_neighbors.size();i+=2){
 		if(not_neighbors[i]<not_neighbors[i+1]){
 			variables[not_neighbors[i]][not_neighbors[i+1]]=solver->declare_one_more_variable(); //this is the variable for not_neighbors[i] is representative of not_neighbors[i+1]
+			solver->clause(not_neighbors[i]+1,-(variables[not_neighbors[i]][not_neighbors[i+1]])); //but u can only represent v if it is indeed a representative
 			//std::cout<<not_neighbors[i]<<" represents "<<not_neighbors[i+1]<<" if "<<variables[not_neighbors[i]][not_neighbors[i+1]]<<std::endl;
 		}
 		else{
 			variables[not_neighbors[i+1]][not_neighbors[i]]=solver->declare_one_more_variable();
+			solver->clause(not_neighbors[i+1]+1,-(variables[not_neighbors[i+1]][not_neighbors[i]]));
 			//std::cout<<not_neighbors[i+1]<<" represents "<<not_neighbors[i]<<" if "<<variables[not_neighbors[i+1]][not_neighbors[i]]<<std::endl;
 		}
 	}	
@@ -50,32 +52,21 @@ void Representatives::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solv
 		//std::cout<<std::endl;
 	}
 
-	//a vertex v cannot be represented by a vertex u that is itself represented by w
-	for(int v = 0;v<n;v++){
-		for(int u=0;u<v;u++){
-			for(int w=0;w<u;w++){
-				solver->clause(-variables[w][u],-variables[u][v]);
-			}
-		}
-	}
-
 	std::vector<int> elist = G.elist();
-	//adjacent vertices can't have the same representative and if u is not a representative, the x_uv is false
+	//adjacent vertices can't have the same representative
 	for(int u=0;u<n;u++){ //for all u
 		for(int i=0;i<elist.size();i+=2){
 			int v = elist[i];
 			int w = elist[i+1];
-			if(u<v && u<w){ //u could represent v and w
+			if(u<v && u<w && std::find(neighbors[v].begin(),neighbors[v].end(),u)==neighbors[v].end() && std::find(neighbors[w].begin(),neighbors[w].end(),u)==neighbors[w].end()){ //u could represent v and w
 				if(std::find(neighbors[u].begin(),neighbors[u].end(),v)==neighbors[u].end() && std::find(neighbors[u].begin(),neighbors[u].end(),w)==neighbors[u].end()){//v and w are not neighbors of u
-					solver->clause(u+1,-variables[u][v]); //if u not representative, then it also does not represent v
-					solver->clause(u+1,-variables[u][w]); //if u not representative, then it also does not represent w
 					solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
 					//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
 				}
 			}
 		}
 	}
-
+	
 	//there should only be k colour classes
 	solver->clause(-1,n+1); 
 	//std::cout<<-1<<" "<<n+1<<std::endl;
@@ -115,7 +106,7 @@ std::vector<int> Representatives::read_sol(Graph::Graph &G, int k, CaDiCaL::Solv
 	std::vector<int> colours = std::vector<int>(G.ncount());
 	representatives = std::vector<int>(G.ncount());
 	int count = 0;
-
+	std::vector<std::vector<int>> neighbors = G.get_neighbor_list();
 	//colour each representative a different colour
 	for(int i=0;i<G.ncount();i++){
 		if((solver->val(i+1))==(i+1)){
@@ -125,13 +116,21 @@ std::vector<int> Representatives::read_sol(Graph::Graph &G, int k, CaDiCaL::Solv
 			count++;
 		}
 		else{
+			std::sort(neighbors[i].begin(),neighbors[i].end());
+			int next_neighbor_index = 0;
 			for(int j=0;j<i;j++){
-				if(solver->val(variables[j][i])==variables[j][i]){ //j is representative of i (since j<i, j already has a colour)
+				if(j != neighbors[i][next_neighbor_index]){
+					//j is not a neighbor of i and smaller so a possible representative
+					if(solver->val(variables[j][i])==variables[j][i]){ //j is representative of i (since j<i, j already has a colour)
 					representatives[i] = j;
 					colours[i]=colours[j];
 					//std::cout<<i<<" has been given colour "<<colours[j]<<std::endl;
 					//std::cout<<representatives[i]<< " represents "<<i<<std::endl;
 					break;
+				}
+				}
+				else if(next_neighbor_index<neighbors[i].size()-1){
+					next_neighbor_index++;
 				}
 			}
 		}
@@ -143,10 +142,12 @@ std::vector<int> Representatives::read_sol(Graph::Graph &G, int k, CaDiCaL::Solv
 bool Representatives::try_sol(Graph::Graph &G, int k, std::vector<int> colour){
 	std::vector<int> edges = G.elist();
 	for(int i=0;i<G.ecount();i++){
-		if(colour[edges[2*i]]>=k){
+		if(colour[edges[2*i]]>=k || colour[edges[2*i+1]]>=k){
+			std::runtime_error("The colouring uses more colours");
 			return false;
 		}
 		if(colour[edges[2*i]]==colour[edges[2*i+1]]){
+			std::runtime_error("The colouring is not valid");
 			return false;
 		}
 	}
@@ -242,9 +243,11 @@ void Representatives::update_sat_rc(int k,std::vector<int> &colour, std::vector<
 			if(representatives[cycle[i]]==cycle[i]){
 				solver->add(-cycle[i]-1);
 				new_clause.push_back(-cycle[i]-1);
+				//std::cout<<-cycle[i]-1<<" ";
 			}
 			else{
 				solver->add(-variables[representatives[cycle[i]]][cycle[i]]);
+				//std::cout<<-variables[representatives[cycle[i]]][cycle[i]]<<" ";
 				new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
 			}
 		}
@@ -276,8 +279,9 @@ bool Representatives::check_colouring_rc(Graph::Graph &G, int k, std::vector<int
 int Representatives::solve_rc(Graph::Graph &G, int k, std::vector<std::vector<int>> &previous_cycles) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
+try{
 	//saves the number given to the variable standing for i is representative of j (i<j)
-	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),-1));
+	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),0));
 	initialize_solver_rc(G,k, solver, previous_cycles, variables);
 	
 	int res;
@@ -330,5 +334,15 @@ int Representatives::solve_rc(Graph::Graph &G, int k, std::vector<std::vector<in
 	}
 	std::cout<<std::endl;*/
 	return 0;
-	
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    delete solver;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown exception caught."<<std::endl;
+    delete solver;
+    return 1;
+}	
 }

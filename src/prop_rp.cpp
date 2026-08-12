@@ -8,6 +8,7 @@
 #include <cmath>
 #include <queue>
 #include <chrono>
+#include <stdexcept>
 
 
 void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles, std::vector<std::vector<int>> &variables){
@@ -18,10 +19,12 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 	for(int i=0;i<not_neighbors.size();i+=2){
 		if(not_neighbors[i]<not_neighbors[i+1]){
 			variables[not_neighbors[i]][not_neighbors[i+1]]=solver->declare_one_more_variable(); //this is the variable for not_neighbors[i] is representative of not_neighbors[i+1]
+			solver->clause(not_neighbors[i]+1,-(variables[not_neighbors[i]][not_neighbors[i+1]])); //but u can only represent v if it is indeed a representative
 			//std::cout<<not_neighbors[i]<<" represents "<<not_neighbors[i+1]<<" if "<<variables[not_neighbors[i]][not_neighbors[i+1]]<<std::endl;
 		}
 		else{
 			variables[not_neighbors[i+1]][not_neighbors[i]]=solver->declare_one_more_variable();
+			solver->clause(not_neighbors[i+1]+1,-(variables[not_neighbors[i+1]][not_neighbors[i]]));
 			//std::cout<<not_neighbors[i+1]<<" represents "<<not_neighbors[i]<<" if "<<variables[not_neighbors[i+1]][not_neighbors[i]]<<std::endl;
 		}
 	}	
@@ -49,25 +52,14 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 		//std::cout<<std::endl;
 	}
 
-	//a vertex v cannot be represented by a vertex u that is itself represented by w
-	for(int v = 0;v<n;v++){
-		for(int u=0;u<v;u++){
-			for(int w=0;w<u;w++){
-				solver->clause(-variables[w][u],-variables[u][v]);
-			}
-		}
-	}
-
 	std::vector<int> elist = G.elist();
-	//adjacent vertices can't have the same representative and if u is not a representative, the x_uv is false
+	//adjacent vertices can't have the same representative
 	for(int u=0;u<n;u++){ //for all u
 		for(int i=0;i<elist.size();i+=2){
 			int v = elist[i];
 			int w = elist[i+1];
-			if(u<v && u<w){ //u could represent v and w
+			if(u<v && u<w && std::find(neighbors[v].begin(),neighbors[v].end(),u)==neighbors[v].end() && std::find(neighbors[w].begin(),neighbors[w].end(),u)==neighbors[w].end()){ //u could represent v and w
 				if(std::find(neighbors[u].begin(),neighbors[u].end(),v)==neighbors[u].end() && std::find(neighbors[u].begin(),neighbors[u].end(),w)==neighbors[u].end()){//v and w are not neighbors of u
-					solver->clause(u+1,-variables[u][v]); //if u not representative, then it also does not represent v
-					solver->clause(u+1,-variables[u][w]); //if u not representative, then it also does not represent w
 					solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
 					//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
 				}
@@ -183,10 +175,12 @@ public:
     bool try_sol(std::vector<int> colour){
         std::vector<int> edges = G.elist();
         for(int i=0;i<G.ecount();i++){
-            if(colour[edges[2*i]]>=k){
+            if(colour[edges[2*i]]>=k || colour[edges[2*i+1]]>=k){
+                std::runtime_error("The colouring usese more than k colours");
                 return false;
             }
             if(colour[edges[2*i]]==colour[edges[2*i+1]]){
+                std::runtime_error("The colouring is not valid");
                 return false;
             }
         }
@@ -275,27 +269,19 @@ public:
     }
 
     bool check_sol(const std::vector<int> &model){
-        std::vector<int> colours = std::vector<int>(G.ncount());
+        std::vector<int> colours = std::vector<int>(G.ncount(),-1);
         std::vector<int> representatives = std::vector<int>(G.ncount());
         int count = 0;
-
-        //colour each representative a different colour
-        for(int i=0;i<G.ncount();i++){
-            if((model[i+1])==(i+1)){
-                representatives[i]=i;
-                colours[i]=count;
-                //std::cout<<i<<" has been given colour "<<count<<std::endl;
+        for(int i=0;i<model.size();i++){
+            if(model[i]<=G.ncount() && model[i]>0){//model i is one of the representants
+                representatives[model[i]-1]=model[i]-1;
+                colours[model[i]-1]=count;
                 count++;
             }
             else{
-                for(int j=0;j<i;j++){
-                    if(model[variables[j][i]]==(variables[j][i])){ //j is representative of i (since j<i, j already has a colour)
-                        representatives[i] = j;
-                        colours[i]=colours[j];
-                        //std::cout<<i<<" has been given colour "<<colours[j]<<std::endl;
-                        //std::cout<<representatives[i]<< " represents "<<i<<std::endl;
-                        break;
-                    }
+                if(model[i]>0 && colours[variables_back[model[i]].second]==-1){
+                    representatives[variables_back[model[i]].second]=variables_back[model[i]].first;
+                    colours[variables_back[model[i]].second]=colours[variables_back[model[i]].first];
                 }
             }
         }
@@ -307,16 +293,14 @@ public:
             std::vector<int> new_clause;
             for(int i=0;i<cycle.size();i++){
                 if(representatives[cycle[i]]==cycle[i]){
-                    solver->add(-cycle[i]-1);
                     new_clause.push_back(-cycle[i]-1);
                 }
                 else{
-                    solver->add(-variables[representatives[cycle[i]]][cycle[i]]);
                     new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
                 }
             }
             //std::cout<<std::endl;
-            solver->add(0);
+            new_clause.push_back(0);
             cycles.push_back(new_clause);
         }
         return new_cycles.empty(); //returns true iff the assignment is valid and cycle free
@@ -445,12 +429,20 @@ public:
         is_forgettable = false;
         if(!cycles.empty()){
             clause = cycles.back();
+            for(auto v : clause){
+                std::cout<<v <<" ";
+            }
+            std::cout<<"]"<<std::endl;
             cycles.pop_back();
             return true;
         }
         bool no_cycles = check_partial_sol();
         if(!no_cycles){
             clause=cycles.back();
+            for(auto v : clause){
+                std::cout<<v <<" ";
+            }
+            std::cout<<"]"<<std::endl;
             cycles.pop_back();
             return true;
         }
@@ -472,23 +464,24 @@ int Propagator_rp::solve(Graph::Graph &G, int k, std::vector<std::vector<int>> &
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	//saves the number given to the variable standing for i is representative of j (i<j)
-	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),-1));
+	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),0));
 	Propagator_rp::initialize_solver(G,k, solver, previous_cycles, variables);
 	
 	std::clock_t t_before_solve=std::clock();
     ActivePropagator prop = ActivePropagator(solver,G,k,variables);
+try{
     prop.observe();
     int res = solver->solve();
     std::clock_t t_after_solve=std::clock();
     if(res==10){
         std::cout<<"Acyclic colouring found!"<<std::endl;
-        std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve) <<"ms."<<std::endl;
+        std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve)/CLOCKS_PER_SEC <<"ms."<<std::endl;
 	    delete &prop;
         delete solver;
         return 0;
     }
     std::cout<<"Unsatisfiable"<<std::endl;
-	std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve) <<"ms."<<std::endl;
+	std::cout<<"Time spent on solving: "<<1000*(t_after_solve-t_before_solve)/CLOCKS_PER_SEC <<"ms."<<std::endl;
 	delete &prop;
     delete solver;
 	/*std::cout<<"The colouring is:";
@@ -497,4 +490,17 @@ int Propagator_rp::solve(Graph::Graph &G, int k, std::vector<std::vector<int>> &
 	}
 	std::cout<<std::endl;*/
 	return 1;
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    delete &prop;
+    delete solver;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown exception caught."<<std::endl;
+    delete &prop;
+    delete solver;
+    return 1;
+}
 }

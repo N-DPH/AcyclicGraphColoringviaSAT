@@ -112,6 +112,7 @@ bool PartialOrder::check_colouring_oc(Graph::Graph &G, int k, std::vector<int> c
 int PartialOrder::solve_oc(Graph::Graph &G, int k) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
+try{
 	initialize_solver(G,k, solver);
 	int res;
 	bool no_cycle = false;
@@ -162,5 +163,15 @@ int PartialOrder::solve_oc(Graph::Graph &G, int k) {
 	}
 	std::cout<<std::endl;*/
 	return 0;
-	
+}
+catch(std::runtime_error e){
+    std::cout<<"Error caught: "<<e.what()<<std::endl;
+    delete solver;
+    return 1;
+}
+catch(...){
+    std::cout<<"Unknown exception caught."<<std::endl;
+    delete solver;
+    return 1;
+}	
 }
