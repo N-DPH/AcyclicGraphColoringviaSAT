@@ -2,7 +2,7 @@
 This does comments. The end does can be anything.
 END
 
-n="15"
+n="20"
 d="5"
 
 rm -f logs_results/log_"$n".csv
@@ -12,8 +12,8 @@ rm -f logs_results/results_"$n".txt
 for file in random_instances/*
 do
     echo "$file" >> logs_results/results_"$n".txt
+    ./build/acycle "$file" -prop -rp >> logs_results/results_"$n".txt
     ./build/acycle "$file" -rp -rc >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -rp -sc >> logs_results/results_"$n".txt
 done
 :<<'END'
 d="5"

@@ -43,7 +43,7 @@ void PartialOrder::initialize_solver_sc(Graph::Graph &G, int k, CaDiCaL::Solver 
 	for(auto cycle : found_cycles){
 		if(cycle[0]<k && cycle[0]!=-1){
 			for(int i=1; i<cycle.size();i++){
-				solver->add(i);
+				solver->add(cycle[i]);
 			}
 			solver->add(0);
 		}
