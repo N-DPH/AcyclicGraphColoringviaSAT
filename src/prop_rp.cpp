@@ -60,10 +60,10 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 			int v = elist[i];
 			int w = elist[i+1];
 			if(u<v && u<w && std::find(neighbors[v].begin(),neighbors[v].end(),u)==neighbors[v].end() && std::find(neighbors[w].begin(),neighbors[w].end(),u)==neighbors[w].end()){ //u could represent v and w
-				if(std::find(neighbors[u].begin(),neighbors[u].end(),v)==neighbors[u].end() && std::find(neighbors[u].begin(),neighbors[u].end(),w)==neighbors[u].end()){//v and w are not neighbors of u
-					solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
-					//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
-				}
+				solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
+				//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
+				solver->clause(-variables[u][v],u+1);//if one of them is represented by u, then u needs to be a representative
+				solver->clause(-variables[u][w],u+1);
 			}
 		}
 	}
@@ -92,7 +92,7 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 	solver->clause(-(n+(n-1)*(k+1)+k+1));
 	//std::cout<<-(n+(n-1)*(k+1)+k+1)<<std::endl;
 
-	//adding all the previous found problem cycles
+	/*adding all the previous found problem cycles
 	for(auto cycle : found_cycles){
 		if(cycle[0]<k  && cycle[0]!=-1){
 			for(int i=1; i<cycle.size();i++){
@@ -100,7 +100,7 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 			}
 			solver->add(0);
 		}
-	}
+	}*/
 }
 
 class ActivePropagator : CaDiCaL::ExternalPropagator {
@@ -363,9 +363,11 @@ public:
             // Update the maps based on the assignment
             if(lit<=G.ncount() && lit >=-G.ncount()){
                 assignment_is_rep[abs(lit)-1]=1-std::signbit(lit);
+                //std::cout<<abs(lit)-1<< " is representative"<<std::endl;
             }
             else{
                 assignment_represented[variables_back[abs(lit)].first][variables_back[abs(lit)].second]=1-std::signbit(lit);
+                //std::cout<<variables_back[abs(lit)].second<<" is represented by "<<variables_back[abs(lit)].first<<std::endl;
             }
         }
         //std::cout << "]" << std::endl;

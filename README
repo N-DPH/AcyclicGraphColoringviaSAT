@@ -15,6 +15,7 @@ for the assignment:
     -as for the standard assignment
     -po for the partial ordering assignment
     -rp for the representative assignment (already ordered)
+    -prop for the propagator
 
 for the version of that assignment (note that not all combinations exists):
     -fv for first version, nothing special
@@ -23,6 +24,8 @@ for the version of that assignment (note that not all combinations exists):
     -rc for remembering cycle found in previous iterations and immediatly including them
     -ac for all combinations i.e. alle permutations of a cycle get forbidden
     -sc for first finding and forbidding cycles of length 4
+    -rp for the propagator with representative 
+    -rp-tree for the propagator with representative and tree structure
 
     THEY SHOULD BE AT THE END OF THE COMMAND
 

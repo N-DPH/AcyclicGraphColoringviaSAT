@@ -59,10 +59,10 @@ void Representatives::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solv
 			int v = elist[i];
 			int w = elist[i+1];
 			if(u<v && u<w && std::find(neighbors[v].begin(),neighbors[v].end(),u)==neighbors[v].end() && std::find(neighbors[w].begin(),neighbors[w].end(),u)==neighbors[w].end()){ //u could represent v and w
-				if(std::find(neighbors[u].begin(),neighbors[u].end(),v)==neighbors[u].end() && std::find(neighbors[u].begin(),neighbors[u].end(),w)==neighbors[u].end()){//v and w are not neighbors of u
-					solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
-					//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
-				}
+				solver->clause(-variables[u][v],-variables[u][w]); //u cannot represent two adjacent vertices
+				//std::cout<<-variables[u][w] <<" "<<-variables[u][v]<<std::endl;
+				solver->clause(-variables[u][v],u+1);//if one of them is represented by u, then u needs to be a representative
+				solver->clause(-variables[u][w],u+1);
 			}
 		}
 	}

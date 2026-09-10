@@ -15,6 +15,7 @@
 #include "rp_rc.hpp"
 #include "rp_sc.hpp"
 #include "prop_rp.hpp"
+#include "prop_rp_tree.hpp"
 #include "upper_bound.hpp"
 #include "lower_bound.hpp"
 #include "preprocessing_it.hpp"
@@ -86,6 +87,12 @@ try{
                     colouring_number= i+1;
                     break;
                 }    
+            }
+            else if(std::string(argv[3])=="-rp-tree"){
+                if(Propagator_rp::solve_tree(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                } 
             }
         }
         else if(std::string(argv[2])=="-po"){
