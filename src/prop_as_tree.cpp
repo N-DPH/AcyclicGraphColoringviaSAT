@@ -13,7 +13,7 @@
 #include <stdexcept>
 
 
-void Propagator_as::initialize_solver_tree(Graph::Graph &G, int k, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles, std::vector<std::vector<int>> &variables){
+void Propagator_as::initialize_solver_tree(Graph::Graph &G, int k, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles){
 	int n = G.ncount();
 	int num_var = n*k;
 	solver->declare_more_variables(num_var);
@@ -63,7 +63,6 @@ private:
     int k;
     std::stack<std::vector<int>> observed_trail;
     //save the colourings so far
-    int color_count;
     //save the connected components of the two colored forests, the last entry is the max number of components
     std::map<std::tuple<int,int>,std::vector<int>> forests;
     std::vector<int> coloring;
@@ -87,13 +86,11 @@ public:
 
         //initialize the map to contain empty forests for all i<j two colour combinations
         forests=std::map<std::tuple<int,int>,std::vector<int>>();
-        std::vector<int> forest(G.ncount()+1,0);
-        for(int i=1;i<=k;i++){
+        for(int i=1;i<k;i++){
             for(int j=i+1;j<=k;j++){
-                forests[std::make_pair(i,j)]=forest;
+                forests[std::make_tuple(i,j)]=std::vector<int>(G.ncount()+1,0);
             }
         }
-        color_count = 0;
         
         // Create the root-level of the trail. This level needs to be always
         // there.
@@ -216,10 +213,9 @@ public:
         std::vector<int> colours = std::vector<int>(G.ncount(),-1);
         for(int i=0;i<model.size();i++){
             if(model[i]>0){
-                int col = model[i]%k;
-                if(col==0){col=k;}//the remainder wraps around if col =k
+                int col = (model[i]-1)%k+1;
                 int v = (model[i]-col)/k;
-                colours[v]=col;
+                colours[v]=col-1;
             }
         }
         if(try_sol(colours)==false){
@@ -230,7 +226,7 @@ public:
             std::vector<int> new_clause;
             //std::cout<<"Model not valid: found cycle ";
             for(int i=0;i<cycle.size();i++){
-                new_clause.push_back(-(cycle[i]*k+colours[cycle[i]]));
+                new_clause.push_back(-(cycle[i]*k+colours[cycle[i]]+1));
             }
             //std::cout<<std::endl;
             cycles.push_back(new_clause);
@@ -283,48 +279,46 @@ public:
     return std::vector<int>();
     }
 
-    std::vector<int> grow_forest(int u, int v){
-        //u represents v so give v the same color as u
-        coloring[v] = coloring[u]; 
+    std::vector<int> grow_forest(int v){ 
         std::vector<bool> used(k,false);
-        std::vector<int> forest;
+        std::tuple<int,int> forest;
         std::vector<int> neighbors = G.get_neighbor_list()[v];
         for(auto w: neighbors){
             //for all neighbors that already have a color
             if(coloring[w]!=0){
-                forest = forests[std::make_tuple(std::min(coloring[w],coloring[v]),std::max(coloring[w],coloring[v]))];
+                forest = std::make_tuple(std::min(coloring[w],coloring[v]),std::max(coloring[w],coloring[v]));
                 //if there already was a neighbor with this color, thus v was already added to the forest
-                if(used[coloring[w]]){
+                if(used[coloring[w]-1]){
                     //if v was added to the same component that w is in, we have a cycle
-                    if(forest[w]==forest[v]){
+                    if(forests[forest][w]==forests[forest][v]){
                         std::vector<int> cycle = find_cycles_in_conn_comp(coloring[v],coloring[w]);
                         return cycle;
                     }
                     //w is in a different connected component of the forest so now merge both components
-                    else if(forest[w]!=0){
-                        int comp = forest[w];
+                    else if(forests[forest][w]!=0){
+                        int comp = forests[forest][w];
                         for(int i=0;i<G.ncount();i++){
-                            if(forest[i]==comp){
-                                forest[i]=forest[v]; //transfer all entries of the conn comp of w to that of v
+                            if(forests[forest][i]==comp){
+                                forests[forest][i]=forests[forest][v]; //transfer all entries of the conn comp of w to that of v
                             }
                         }
                     }
                     //if w was in no tree so far
                     else{
-                        forest[w]=forest[v];
+                        forests[forest][w]=forests[forest][v];
                     }
                 }
                 else{
                     //w is the first neighbor of v with this color and so v was not added to any conn comp yet
-                    if(forest[w]!=0){
-                        forest[v]=forest[w];
-                        used[coloring[w]]=true;
+                    if(forests[forest][w]!=0){
+                        forests[forest][v]=forests[forest][w];
+                        used[coloring[w]-1]=true;
                     }
                     //v and w form a new connected comp
                     else{
-                        forest[G.ncount()]++;
-                        forest[v]=forest[G.ncount()];
-                        forest[w]=forest[v];
+                        forests[forest][G.ncount()]++;
+                        forests[forest][v]=forests[forest][G.ncount()];
+                        forests[forest][w]=forests[forest][v];
                     }
                 }
             }
@@ -338,34 +332,22 @@ public:
             std::cout<<lits[i]<< " ";
         }
         std::cout<<std::endl;
-        for (int i = lits.size()-1;i>=0;i--) {
+        for (auto lit : lits) {
             //std::cout << lit << " ";
-            int lit = lits[i];
             // Add the new assignment to the observed trail
             observed_trail.top().push_back(lit);
-
+            int col = (lit-1)%k+1;
+            int v = (lit-col)/k;
             // Update the maps based on the assignment
-            if(lit<=G.ncount() && lit >0){
-                std::cout<<lit-1<< " gets color "<<color_count+1<<std::endl;
-                color_count++;
-                coloring[lit-1]=color_count;
-                representatives[lit-1]=lit-1;
-            }
-            //assume that the representative has already been set as representative
-            else if(lit>G.ncount()){
-                std::cout<<variables_back[lit].second<< " gets represented by "<<variables_back[lit].first<<std::endl;
-                representatives[variables_back[lit].second]=variables_back[lit].first;
-                std::vector<int> cycle = grow_forest(variables_back[lit].first,variables_back[lit].second);
+            if(lit>0){
+                std::cout<<v<< " gets color "<<col<<std::endl;
+                coloring[v]=col;
+                std::vector<int> cycle = grow_forest(v);
                 //this assignment caused a cycle
                 if(!cycle.empty()){
                     std::vector<int> new_clause;
                     for(int i=0;i<cycle.size();i++){
-                        if(representatives[cycle[i]]==cycle[i]){
-                            new_clause.push_back(-cycle[i]-1);
-                        }
-                        else{
-                            new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
-                        }
+                        new_clause.push_back(cycle[i]*k+coloring[cycle[i]]);
                     }
                     cycles.push_back(new_clause);
                 }
@@ -385,36 +367,40 @@ public:
     }
 
     //if v is no longer represented by u
-    void decrease_forest(int u, int v){ 
+    void decrease_forest(int v, int col_v){ 
         std::vector<bool> del(k,false);
-        std::vector<int> forest;
+        std::tuple<int,int> forest;
         std::vector<int> neighbors =  G.get_neighbor_list()[v];
         for(auto w: neighbors){
             //for all neighbors that already have a color
             if(coloring[w]!=0){
-                forest = forests[std::make_tuple(std::min(coloring[w],coloring[v]),std::max(coloring[w],coloring[v]))];
+                forest = std::make_tuple(std::min(coloring[w],col_v),std::max(coloring[w],col_v));
                 //if w is the first neighbor of this color so we just remove v
-                if(!del[coloring[w]]){
-                    forest[v]=0;
+                if(!del[coloring[w]-1]){
+                    forests[forest][v]=0;
                     coloring[v]=0;
-                    del[coloring[w]]=true;
+                    del[coloring[w]-1]=true;
                 }
                 //make a new connected component by splitting the tree
                 else{
-                    forest[G.ncount()]++;
-                    int i = forest[G.ncount()];
-                    int j = forest[w];
+                    forests[forest][G.ncount()]++;
+                    int i = forests[forest][G.ncount()];
+                    int j = forests[forest][w];
                     std::queue<int> q;
                     q.push(w);
+                    forests[forest][w]=i;
                     //find the whole conn comp from there
                     while(!q.empty()){
                         int y = q.back();
                         q.pop();
                         std::vector<int> neighbors_of_y = G.get_neighbor_list()[y];
                         for(auto z : neighbors_of_y){
-                            if(forest[z]==j){q.push(z);}
+                            if(forests[forest][z]==j){
+                                q.push(z);
+                                forests[forest][z]=i;
+                            }
                         }
-                        forest[y]=i;
+                        
                     }
                 }
             }
@@ -430,32 +416,10 @@ public:
         while (observed_trail.size () > new_level + 1) {
             for (auto lit : observed_trail.top ()) {
                 std::cout << lit << " ";
-
-                if(lit<=G.ncount() && lit >0){
-                    int v = lit-1; 
-                    int col = coloring[v];
-                    representatives[lit-1]=-1;
-                    std::vector<int> forest(G.ncount()+1,0);
-                    //empty all trees containing that color
-                    for(int i=1;i<col;i++){
-                        forests[std::make_tuple(i,col)]= forest;
-                    }
-                    for(int i=col+1;i<=k;i++){
-                        forests[std::make_tuple(i,col)]= forest;
-                    }
-                    //deassign all vertices that had the same color
-                    for(int i=0;i<G.ncount();i++){
-                        if(coloring[i]==col){
-                            coloring[i]=0;
-                            representatives[i]=-1;
-                        }
-                    }
-                    color_count--;
-                }
-                //we might have already uncolored v if the whole color class was deleted
-                else if(lit>G.ncount() && coloring[variables_back[lit].second]!=0){
-                    representatives[variables_back[lit].second] = -1;
-                    decrease_forest(variables_back[lit].first, variables_back[lit].second);
+                int col_v = (lit-1)%k+1;
+                int v = (lit-col_v)/k;
+                if(lit>0){
+                    decrease_forest(v,col_v);
                 }
             }
             observed_trail.pop ();
@@ -464,12 +428,14 @@ public:
     }
 
     bool cb_check_found_model (const std::vector<int> &model) override {
-        /*std::cout << "[act-prop][cb_check_found_model][ ";
+        std::cout << "[act-prop][cb_check_found_model][ ";
         for (const auto lit : model) {
         std::cout << lit << " ";
         }
-        std::cout << "]" << std::endl;*/
-        return check_sol(model);
+        std::cout << "]" << std::endl;
+        bool res = check_sol(model);
+        std::cout<< "Made the check. Found a cycle: "<<!res<<std::endl;
+        return res;
     }
 
     //for now, I don't get involved in the actual solving except to add cycle clauses via cb_has_external_clause
@@ -505,15 +471,15 @@ public:
 };
 
 
-int Propagator_rp::solve_tree(Graph::Graph &G, int k, std::vector<std::vector<int>> &previous_cycles) {
+int Propagator_as::solve_tree(Graph::Graph &G, int k, std::vector<std::vector<int>> &previous_cycles) {
 
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	//saves the number given to the variable standing for i is representative of j (i<j)
 	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),0));
-	Propagator_rp::initialize_solver_tree(G,k, solver, previous_cycles, variables);
+	Propagator_as::initialize_solver_tree(G,k, solver, previous_cycles);
 	
 	std::clock_t t_before_solve=std::clock();
-    ActiveTreePropagator* prop = new ActiveTreePropagator(solver,G,k,variables);
+    ActiveTreePropagator* prop = new ActiveTreePropagator(solver,G,k);
 try{
     prop->observe();
     int res = solver->solve();
