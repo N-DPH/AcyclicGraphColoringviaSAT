@@ -234,104 +234,118 @@ public:
         return new_cycles.empty(); //returns true iff the assignment is valid and cycle free
     }
 
-    std::vector<int> find_cycles_in_conn_comp(int col1,int col2){
+    std::vector<int> find_cycles_in_conn_comp(int col1,int col2,int i){
         std::vector<Graph::VertexType> edges = G.elist();
         Graph::NeighborList neighbors = G.get_neighbor_list();
         
         //to not get weird overlapping cycles
         std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
         std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
-        for(int i=0;i<G.ncount();i++){
-            if((coloring[i]==col1 || coloring[i]==col2) && !visited[i]){
-                std::queue<int> q;
-                q.push(i);
-                while(!q.empty()){
-                    int v = q.front();
-                    q.pop();
-                    for(auto w : neighbors[v]){
-                        if(w != parent[v] && visited[w] && (coloring[w]==col1 || coloring[w]==col2)){
-                            std::vector<int> cycle= std::vector<int>(0);
-                            cycle.push_back(w);
-                            cycle.push_back(v);
-                            w=parent[w];
-                            cycle.push_back(w);
-                            w = parent[w];
-                            v=parent[v];
-                            while(w != v){
-                                cycle.push_back(v);
-                                cycle.push_back(w);
-                                w = parent[w];
-                                v=parent[v];
-                            }
-                            cycle.push_back(v);
-                            return cycle;
-                        }
-                        if(w != parent[v] && (coloring[w]==col1 || coloring[w]==col2)){
-                            visited[w]=true;
-                            parent[w]=v;
-                            q.push(w);
-                        }
+        
+        std::queue<int> q;
+        q.push(i);
+        while(!q.empty()){
+            int v = q.front();
+            q.pop();
+            for(auto w : neighbors[v]){
+                if(w != parent[v] && visited[w] && (coloring[w]==col1 || coloring[w]==col2)){
+                    std::vector<int> cycle= std::vector<int>(0);
+                    cycle.push_back(w);
+                    cycle.push_back(v);
+                    w=parent[w];
+                    cycle.push_back(w);
+                    w = parent[w];
+                    v=parent[v];
+                    std::cout << "begin while" << std::endl;
+                    while(w != v){
+                        cycle.push_back(v);
+                        cycle.push_back(w);
+                        std::cout << "w = " << w << std::endl;
+                        std::cout << "parent(w) = " << parent[w] << std::endl;
+                        w = parent[w];
+                        v=parent[v];
                     }
+                    std::cout << "end while" << std::endl;
+                    cycle.push_back(v);
+                    return cycle;
+                }
+                if(w != parent[v] && (coloring[w]==col1 || coloring[w]==col2)){
+                    visited[w]=true;
+                    parent[w]=v;
+                    q.push(w);
                 }
             }
-            else{visited[i]=true;}
-        }
+        } 
     return std::vector<int>();
     }
 
-    std::vector<int> grow_forest(int v){ 
+    std::vector<std::vector<int>> grow_forest(int v){ 
+        //std::cout<<" grow_forest start "<<std::endl;
         std::vector<bool> used(k,false);
         std::tuple<int,int> forest;
+        std::vector<std::vector<int>> new_cycles;
         std::vector<int> neighbors = G.get_neighbor_list()[v];
+        //std::cout<<" grow_forest initialized "<<std::endl;
         for(auto w: neighbors){
+            if(coloring[w]==coloring[v]){
+                new_cycles.push_back({v,w});
+            }
             //for all neighbors that already have a color
-            if(coloring[w]!=0){
+            else if(coloring[w]!=0){
+                //std::cout<<" grow_forest start for loop iteration for w = "<<w<<std::endl;
                 forest = std::make_tuple(std::min(coloring[w],coloring[v]),std::max(coloring[w],coloring[v]));
                 //if there already was a neighbor with this color, thus v was already added to the forest
                 if(used[coloring[w]-1]){
                     //if v was added to the same component that w is in, we have a cycle
                     if(forests[forest][w]==forests[forest][v]){
-                        std::vector<int> cycle = find_cycles_in_conn_comp(coloring[v],coloring[w]);
-                        return cycle;
+                        //std::cout<<" grow_forest v, w are in same component "<<std::endl;
+                        new_cycles.push_back(find_cycles_in_conn_comp(coloring[v],coloring[w],v));
                     }
                     //w is in a different connected component of the forest so now merge both components
                     else if(forests[forest][w]!=0){
+                        //std::cout<<" grow_forest v, w are not in same component start "<<std::endl;
                         int comp = forests[forest][w];
                         for(int i=0;i<G.ncount();i++){
                             if(forests[forest][i]==comp){
                                 forests[forest][i]=forests[forest][v]; //transfer all entries of the conn comp of w to that of v
                             }
                         }
+                        //std::cout<<" grow_forest v, w are not in same component end "<<std::endl;
                     }
                     //if w was in no tree so far
                     else{
+                        //std::cout<<" grow_forest w in no tree "<<std::endl;
                         forests[forest][w]=forests[forest][v];
                     }
                 }
                 else{
                     //w is the first neighbor of v with this color and so v was not added to any conn comp yet
                     if(forests[forest][w]!=0){
+                        //std::cout<<" grow_forest w first neighbor with this color "<<std::endl;
                         forests[forest][v]=forests[forest][w];
                         used[coloring[w]-1]=true;
                     }
                     //v and w form a new connected comp
                     else{
+                        //std::cout<<" grow_forest v,w form new conn comp "<<std::endl;
                         forests[forest][G.ncount()]++;
                         forests[forest][v]=forests[forest][G.ncount()];
                         forests[forest][w]=forests[forest][v];
                     }
                 }
+                //std::cout<<" grow_forest end for loop iteration for w = "<<w<<std::endl;
             }
         }
-        return std::vector<int>();
+        //std::cout<<" grow_forest end "<<std::endl;
+        return new_cycles;
     }
 
 
     void notify_assignment (const std::vector<int> &lits) override {
-        for(int i = lits.size()-1;i>=0;i--){
+        /*for(int i = lits.size()-1;i>=0;i--){
             std::cout<<lits[i]<< " ";
         }
-        std::cout<<std::endl;
+        std::cout<<std::endl;*/
         for (auto lit : lits) {
             //std::cout << lit << " ";
             // Add the new assignment to the observed trail
@@ -340,16 +354,18 @@ public:
             int v = (lit-col)/k;
             // Update the maps based on the assignment
             if(lit>0){
-                std::cout<<v<< " gets color "<<col<<std::endl;
+                //std::cout<<v<< " gets color "<<col<<std::endl;
                 coloring[v]=col;
-                std::vector<int> cycle = grow_forest(v);
+                std::vector<std::vector<int>> new_cycles = grow_forest(v);
                 //this assignment caused a cycle
-                if(!cycle.empty()){
-                    std::vector<int> new_clause;
-                    for(int i=0;i<cycle.size();i++){
-                        new_clause.push_back(cycle[i]*k+coloring[cycle[i]]);
+                if(!new_cycles.empty()){
+                    for(auto cycle : new_cycles){
+                        std::vector<int> new_clause;
+                        for(int i=0;i<cycle.size();i++){
+                            new_clause.push_back(-(cycle[i]*k+coloring[cycle[i]]));
+                        }
+                        cycles.push_back(new_clause);
                     }
-                    cycles.push_back(new_clause);
                 }
             }
         }
@@ -360,7 +376,7 @@ public:
     
 
     void notify_new_decision_level () override {
-        std::cout << "[act-prop][notify_new_decision_level]" << std::endl;
+        //std::cout << "[act-prop][notify_new_decision_level]" << std::endl;
 
         // Create a new decision level on the observed trail
         observed_trail.push(std::vector<int> ());
@@ -372,11 +388,15 @@ public:
         std::tuple<int,int> forest;
         std::vector<int> neighbors =  G.get_neighbor_list()[v];
         for(auto w: neighbors){
+            if(coloring[w]==col_v){
+                coloring[v]=0;
+            }
             //for all neighbors that already have a color
-            if(coloring[w]!=0){
+            else if(coloring[w]!=0){
                 forest = std::make_tuple(std::min(coloring[w],col_v),std::max(coloring[w],col_v));
                 //if w is the first neighbor of this color so we just remove v
                 if(!del[coloring[w]-1]){
+                    //std::cout << coloring[w] << " " << col_v << std::endl;
                     forests[forest][v]=0;
                     coloring[v]=0;
                     del[coloring[w]-1]=true;
@@ -409,13 +429,13 @@ public:
     }
 
     void notify_backtrack (size_t new_level) override {
-        std::cout << "[act-prop][notify_backtrack][ "<< observed_trail.size () - 1 << " -> " << new_level << " ]"<< "[unassigned: ";
+        //std::cout << "[act-prop][notify_backtrack][ "<< observed_trail.size () - 1 << " -> " << new_level << " ]"<< "[unassigned: ";
 
         // Undo all the backtracked assignments on the observed trail and
         // in the assignment maps.
         while (observed_trail.size () > new_level + 1) {
             for (auto lit : observed_trail.top ()) {
-                std::cout << lit << " ";
+                //std::cout << lit << " ";
                 int col_v = (lit-1)%k+1;
                 int v = (lit-col_v)/k;
                 if(lit>0){
@@ -428,13 +448,13 @@ public:
     }
 
     bool cb_check_found_model (const std::vector<int> &model) override {
-        std::cout << "[act-prop][cb_check_found_model][ ";
+        /*std::cout << "[act-prop][cb_check_found_model][ ";
         for (const auto lit : model) {
-        std::cout << lit << " ";
+            std::cout << lit << " ";
         }
-        std::cout << "]" << std::endl;
+        std::cout << "]" << std::endl;*/
         bool res = check_sol(model);
-        std::cout<< "Made the check. Found a cycle: "<<!res<<std::endl;
+        //std::cout<< "Made the check. Found a cycle: "<<!res<<std::endl;
         return res;
     }
 

@@ -13,6 +13,7 @@ for file in random_instances/*
 do
     echo "$file" >> logs_results/results_"$n".txt
     ./build/acycle "$file" -prop -as-tree >> logs_results/results_"$n".txt
+     ./build/acycle "$file" -po -mc >> logs_results/results_"$n".txt
 done
 
 ./build/check_results logs_results/results_"$n".txt
