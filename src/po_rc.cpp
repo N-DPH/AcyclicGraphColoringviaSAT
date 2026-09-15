@@ -39,9 +39,19 @@ void PartialOrder::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solver 
 		}
 	}
 	//adding all the previous found problem cycles
-	for(auto cycle : found_cycles){
+	for(auto &cycle : found_cycles){
 		if(cycle[0]<k && cycle[0]!=-1){
 			for(int i=1; i<cycle.size();i++){
+				//std::cout<<"cycle before: "<<cycle[i];
+				int col_v = (abs(cycle[i])-1)%(k+1)+1;
+                int v = (abs(cycle[i])-col_v)/(k+1);
+				if(std::signbit(cycle[i])==0){
+					cycle[i]=abs(cycle[i])-v;
+				}
+				else{
+					cycle[i]=-(abs(cycle[i])-v);
+				}
+				//std::cout<<"cycle after: "<<cycle[i]<<std::endl;
 				solver->add(cycle[i]);
 			}
 			solver->add(0);

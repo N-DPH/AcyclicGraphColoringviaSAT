@@ -92,12 +92,22 @@ void Representatives::initialize_solver_rc(Graph::Graph &G, int k, CaDiCaL::Solv
 	//std::cout<<-(n+(n-1)*(k+1)+k+1)<<std::endl;
 
 	//adding all the previous found problem cycles
-	for(auto cycle : found_cycles){
+	for(auto &cycle : found_cycles){
 		if(cycle[0]<k  && cycle[0]!=-1){
+			//std::cout<<"adding cycle: ";
 			for(int i=1; i<cycle.size();i++){
-				solver->add(i);
+				if(cycle[i]<0){
+					solver->add(cycle[i]);
+					//std::cout<<cycle[i]<<", ";
+				}
+				else{
+					solver->add(-variables[cycle[i]][cycle[i+1]]);
+					//std::cout<<cycle[i]<<", "<<cycle[i+1]<<", ";
+					i++;
+				}
 			}
 			solver->add(0);
+			//std::cout<<std::endl;
 		}
 	}
 }
@@ -235,27 +245,31 @@ void Representatives::find_cycle_rc(Graph::Graph &G, int k, std::vector<int> col
 void Representatives::update_sat_rc(int k,std::vector<int> &colour, std::vector<std::vector<int>> &cycles, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles, std::vector<std::vector<int>> &variables, std::vector<int> &representatives){
 	//forbid this specific colouring
 	//std::cout<<"adding clause: ";
-	for(std::vector<int> cycle : cycles){
+	//we need at least 2 colors for any of these to work
+	std::vector<int> new_found = {2};
+	for(std::vector<int> &cycle : cycles){
 		std::vector<int> new_clause;
-		int max_colour = std::max(colour[cycle[0]],colour[cycle[1]]);
-		new_clause.push_back(max_colour);
+		//std::cout<<"pushed cycle: ";
 		for(int i=0;i<cycle.size();i++){
 			if(representatives[cycle[i]]==cycle[i]){
 				solver->add(-cycle[i]-1);
-				new_clause.push_back(-cycle[i]-1);
-				//std::cout<<-cycle[i]-1<<" ";
+				//this will be added again next k. "-" means this was a representative
+				new_found.push_back(-cycle[i]-1);
+				//std::cout<<-cycle[i]-1<<", ";
+
 			}
 			else{
 				solver->add(-variables[representatives[cycle[i]]][cycle[i]]);
-				//std::cout<<-variables[representatives[cycle[i]]][cycle[i]]<<" ";
-				new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
+				//this will be added again next k. "+" means the first one is representing the second
+				
+				new_found.push_back(representatives[cycle[i]]);
+				new_found.push_back(cycle[i]);
+				//std::cout<<representatives[cycle[i]]<<", "<<cycle[i]<<", ";
 			}
 		}
 		//std::cout<<std::endl;
 		solver->add(0);
-		if(max_colour<k-1){
-			found_cycles.push_back(new_clause);
-		}
+		found_cycles.push_back(new_found);
 	}
 }
 

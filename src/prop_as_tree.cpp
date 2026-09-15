@@ -13,7 +13,7 @@
 #include <stdexcept>
 
 
-void Propagator_as::initialize_solver_tree(Graph::Graph &G, int k, CaDiCaL::Solver *solver,std::vector<std::vector<int>> &found_cycles){
+void Propagator_as::initialize_solver_tree(Graph::Graph &G, int k, CaDiCaL::Solver *solver){
 	int n = G.ncount();
 	int num_var = n*k;
 	solver->declare_more_variables(num_var);
@@ -44,15 +44,6 @@ void Propagator_as::initialize_solver_tree(Graph::Graph &G, int k, CaDiCaL::Solv
 			solver->clause(-index_v-j,-index_w-j);
 		}
 	}
-	/*adding all the previous found problem cycles
-	for(auto cycle : found_cycles){
-		if(cycle[0]<k  && cycle[0]!=-1){
-			for(int i=1; i<cycle.size();i++){
-				solver->add(cycle[i]);
-			}
-			solver->add(0);
-		}
-	}*/
 }
 
 class ActiveTreePropagator : CaDiCaL::ExternalPropagator {
@@ -222,11 +213,12 @@ public:
             return false;
         }
         std::vector<std::vector<int>> new_cycles = find_cycles(colours);
-        for(auto cycle : new_cycles){
+        for(auto &cycle : new_cycles){
             std::vector<int> new_clause;
             //std::cout<<"Model not valid: found cycle ";
             for(int i=0;i<cycle.size();i++){
                 new_clause.push_back(-(cycle[i]*k+colours[cycle[i]]+1));
+                //std::cout<<cycle[i]<<", ";
             }
             //std::cout<<std::endl;
             cycles.push_back(new_clause);
@@ -238,7 +230,6 @@ public:
         std::vector<Graph::VertexType> edges = G.elist();
         Graph::NeighborList neighbors = G.get_neighbor_list();
         
-        //to not get weird overlapping cycles
         std::vector<bool> visited = std::vector<bool>(G.ncount(),false);
         std::vector<int> parent = std::vector<int>(G.ncount(),-1); 
         
@@ -248,7 +239,10 @@ public:
             int v = q.front();
             q.pop();
             for(auto w : neighbors[v]){
-                if(w != parent[v] && visited[w] && (coloring[w]==col1 || coloring[w]==col2)){
+                if(coloring[w]==coloring[v]){
+                    return {v,w};
+                }
+                else if(w != parent[v] && visited[w] && (coloring[w]==col1 || coloring[w]==col2)){
                     std::vector<int> cycle= std::vector<int>(0);
                     cycle.push_back(w);
                     cycle.push_back(v);
@@ -256,16 +250,16 @@ public:
                     cycle.push_back(w);
                     w = parent[w];
                     v=parent[v];
-                    std::cout << "begin while" << std::endl;
+                    //std::cout << "begin while with v = "<<v <<", w = "<<w<< std::endl;
                     while(w != v){
                         cycle.push_back(v);
                         cycle.push_back(w);
-                        std::cout << "w = " << w << std::endl;
-                        std::cout << "parent(w) = " << parent[w] << std::endl;
+                        //std::cout << "w = " << w << std::endl;
+                        //std::cout << "parent(w) = " << parent[w] << std::endl;
                         w = parent[w];
                         v=parent[v];
                     }
-                    std::cout << "end while" << std::endl;
+                    //std::cout << "end while" << std::endl;
                     cycle.push_back(v);
                     return cycle;
                 }
@@ -299,7 +293,10 @@ public:
                     //if v was added to the same component that w is in, we have a cycle
                     if(forests[forest][w]==forests[forest][v]){
                         //std::cout<<" grow_forest v, w are in same component "<<std::endl;
-                        new_cycles.push_back(find_cycles_in_conn_comp(coloring[v],coloring[w],v));
+                        std::vector<int> new_cycle = find_cycles_in_conn_comp(coloring[v],coloring[w],v);
+                        if(!new_cycle.empty()){
+                            new_cycles.push_back(new_cycle);
+                        }
                     }
                     //w is in a different connected component of the forest so now merge both components
                     else if(forests[forest][w]!=0){
@@ -346,7 +343,7 @@ public:
             std::cout<<lits[i]<< " ";
         }
         std::cout<<std::endl;*/
-        for (auto lit : lits) {
+        for (auto &lit : lits) {
             //std::cout << lit << " ";
             // Add the new assignment to the observed trail
             observed_trail.top().push_back(lit);
@@ -359,11 +356,14 @@ public:
                 std::vector<std::vector<int>> new_cycles = grow_forest(v);
                 //this assignment caused a cycle
                 if(!new_cycles.empty()){
-                    for(auto cycle : new_cycles){
+                    for(auto &cycle : new_cycles){
                         std::vector<int> new_clause;
+                        //std::cout<<"Found cycle: ";
                         for(int i=0;i<cycle.size();i++){
                             new_clause.push_back(-(cycle[i]*k+coloring[cycle[i]]));
+                            //std::cout<<cycle[i]<<", ";
                         }
+                        //std::cout<<std::endl;
                         cycles.push_back(new_clause);
                     }
                 }
@@ -414,7 +414,7 @@ public:
                         int y = q.back();
                         q.pop();
                         std::vector<int> neighbors_of_y = G.get_neighbor_list()[y];
-                        for(auto z : neighbors_of_y){
+                        for(auto &z : neighbors_of_y){
                             if(forests[forest][z]==j){
                                 q.push(z);
                                 forests[forest][z]=i;
@@ -434,7 +434,7 @@ public:
         // Undo all the backtracked assignments on the observed trail and
         // in the assignment maps.
         while (observed_trail.size () > new_level + 1) {
-            for (auto lit : observed_trail.top ()) {
+            for (auto &lit : observed_trail.top ()) {
                 //std::cout << lit << " ";
                 int col_v = (lit-1)%k+1;
                 int v = (lit-col_v)/k;
@@ -496,7 +496,7 @@ int Propagator_as::solve_tree(Graph::Graph &G, int k, std::vector<std::vector<in
 	CaDiCaL::Solver *solver = new CaDiCaL::Solver;
 	//saves the number given to the variable standing for i is representative of j (i<j)
 	std::vector<std::vector<int>> variables = std::vector<std::vector<int>>(G.ncount(),std::vector<int>(G.ncount(),0));
-	Propagator_as::initialize_solver_tree(G,k, solver, previous_cycles);
+	Propagator_as::initialize_solver_tree(G,k, solver);
 	
 	std::clock_t t_before_solve=std::clock();
     ActiveTreePropagator* prop = new ActiveTreePropagator(solver,G,k);

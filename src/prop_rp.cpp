@@ -92,15 +92,49 @@ void Propagator_rp::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *s
 	solver->clause(-(n+(n-1)*(k+1)+k+1));
 	//std::cout<<-(n+(n-1)*(k+1)+k+1)<<std::endl;
 
-	/*adding all the previous found problem cycles
-	for(auto cycle : found_cycles){
+	//adding all the previous found problem cycles
+	for(auto &cycle : found_cycles){
 		if(cycle[0]<k  && cycle[0]!=-1){
+			//std::cout<<"adding cycle: ";
 			for(int i=1; i<cycle.size();i++){
-				solver->add(cycle[i]);
+				if(cycle[i]<0){
+					solver->add(cycle[i]);
+					//std::cout<<cycle[i]<<", ";
+				}
+				else{
+					solver->add(-variables[cycle[i]][cycle[i+1]]);
+					//std::cout<<cycle[i]<<", "<<cycle[i+1]<<", ";
+					i++;
+				}
 			}
 			solver->add(0);
+			//std::cout<<std::endl;
 		}
-	}*/
+	}
+
+    for(auto cycle : found_cycles){
+		if(cycle[0]==-1){
+			int min_rep = std::min(cycle[2],cycle[3]);
+			int represented = std::max(cycle[2],cycle[3]);
+			solver->clause(-(cycle[1]+1),-(min_rep+1),-(variables[min_rep][represented]),-(variables[cycle[1]][cycle[4]]));
+			for(int i=0;i<cycle[0];i++){ //for every i that could be representative of the colour class of cycle[1] and cycle[4]
+				//if it actually can be i.e. is not neighbor of either
+				if(std::find(neighbors[i].begin(),neighbors[i].end(),cycle[1])==neighbors[i].end() && std::find(neighbors[i].begin(),neighbors[i].end(),cycle[4])==neighbors[i].end()){
+					solver->clause(-(variables[i][cycle[1]]),-(min_rep+1),-(variables[min_rep][represented]),-(variables[i][cycle[4]]));
+					for(int j=0;j<min_rep;j++){
+						if(i!=j && std::find(neighbors[j].begin(),neighbors[j].end(),cycle[2])==neighbors[j].end() && std::find(neighbors[j].begin(),neighbors[j].end(),cycle[3])==neighbors[j].end()){
+							solver->clause(-(variables[i][cycle[1]]),-(variables[j][cycle[2]]),-(variables[j][cycle[3]]),-(variables[i][cycle[4]]));
+						}
+					}
+				}
+			}
+			for(int j=0;j<min_rep;j++){
+				if(std::find(neighbors[j].begin(),neighbors[j].end(),cycle[2])==neighbors[j].end() && std::find(neighbors[j].begin(),neighbors[j].end(),cycle[3])==neighbors[j].end()){
+					solver->clause(-(cycle[1]+1),-(variables[j][cycle[2]]),-(variables[j][cycle[3]]),-(variables[cycle[1]][cycle[4]]));
+				}
+			}
+		}
+	}
 }
 
 class ActivePropagator : CaDiCaL::ExternalPropagator {
@@ -118,10 +152,11 @@ private:
     //contains the cycles already as logic encoding
     std::vector<std::vector<int>> cycles;
     std::vector<int> clause;
+    std::vector<std::vector<int>>& found_cycles;
 
 public:
-    ActivePropagator (CaDiCaL::Solver *s, Graph::Graph &G_new, int k_new, std::vector<std::vector<int>> var)
-        : solver (s), G(G_new), k(k_new), variables(var) {
+    ActivePropagator (CaDiCaL::Solver *s, Graph::Graph &G_new, int k_new, std::vector<std::vector<int>> var, std::vector<std::vector<int>> &previous_cycles)
+        : solver (s), G(G_new), k(k_new), variables(var), found_cycles(previous_cycles) {
         is_lazy = false;
 
         // In this example we can always cheaply re-add external clauses if
@@ -289,19 +324,24 @@ public:
         std::vector<std::vector<int>> new_cycles = find_cycles(colours);
         for(auto cycle : new_cycles){
             std::vector<int> new_clause;
+            std::vector<int> new_found;
             //std::cout<<"Model not valid: found cycle ";
             for(int i=0;i<cycle.size();i++){
                 if(representatives[cycle[i]]==cycle[i]){
                     new_clause.push_back(-cycle[i]-1);
+                    new_found.push_back(-cycle[i]-1);
                     //std::cout<<-cycle[i]-1<<" ";
                 }
                 else{
                     new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
+                    new_found.push_back(representatives[cycle[i]]);
+                    new_found.push_back(cycle[i]);
                     //std::cout<<-variables[representatives[cycle[i]]][cycle[i]]<<" ";
                 }
             }
             //std::cout<<std::endl;
             cycles.push_back(new_clause);
+            found_cycles.push_back(new_found);
         }
         return new_cycles.empty(); //returns true iff the assignment is valid and cycle free
     }
@@ -334,15 +374,20 @@ public:
         std::vector<std::vector<int>> new_cycles = find_cycles(colours);
         for(auto cycle : new_cycles){
             std::vector<int> new_clause;
+            std::vector<int> new_found = {2};
             for(int i=0;i<cycle.size();i++){
                 if(representatives[cycle[i]]==cycle[i]){
                     new_clause.push_back(-cycle[i]-1);
+                    new_found.push_back(-cycle[i]-1);
                 }
                 else{
                     new_clause.push_back(-variables[representatives[cycle[i]]][cycle[i]]);
+                    new_found.push_back(representatives[cycle[i]]);
+                    new_found.push_back(cycle[i]);
                 }
             }
             cycles.push_back(new_clause);
+            found_cycles.push_back(new_found);
         }
         return new_cycles.empty(); //returns true iff the assignment is valid and cycle free
     }
@@ -464,7 +509,7 @@ int Propagator_rp::solve(Graph::Graph &G, int k, std::vector<std::vector<int>> &
 	Propagator_rp::initialize_solver(G,k, solver, previous_cycles, variables);
 	
 	std::clock_t t_before_solve=std::clock();
-    ActivePropagator* prop = new ActivePropagator(solver,G,k,variables);
+    ActivePropagator* prop = new ActivePropagator(solver,G,k,variables, previous_cycles);
 try{
     prop->observe();
     int res = solver->solve();

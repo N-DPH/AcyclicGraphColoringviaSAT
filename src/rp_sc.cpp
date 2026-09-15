@@ -93,12 +93,22 @@ void Representatives::initialize_solver_sc(Graph::Graph &G, int k, CaDiCaL::Solv
 	//std::cout<<-(n+(n-1)*(k+1)+k+1)<<std::endl;
 
 	//adding all the previous found problem cycles
-	for(auto cycle : found_cycles){
-		if(cycle[0]<k && cycle[0]!=-1){
+	for(auto &cycle : found_cycles){
+		if(cycle[0]<k  && cycle[0]!=-1){
+			//std::cout<<"adding cycle: ";
 			for(int i=1; i<cycle.size();i++){
-				solver->add(i);
+				if(cycle[i]<0){
+					solver->add(cycle[i]);
+					//std::cout<<cycle[i]<<", ";
+				}
+				else{
+					solver->add(-variables[cycle[i]][cycle[i+1]]);
+					//std::cout<<cycle[i]<<", "<<cycle[i+1]<<", ";
+					i++;
+				}
 			}
 			solver->add(0);
+			//std::cout<<std::endl;
 		}
 	}
 
