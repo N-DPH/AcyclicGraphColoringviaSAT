@@ -39,18 +39,18 @@ try{
     std::clock_t t_lb = std::clock();
     std::cout<<"Lower bound found "<<lb<<std::endl;
     std::cout<<"Time for computing lower bound "<< 1000.0 *(t_lb - t_read_graph) / CLOCKS_PER_SEC<<"ms."<<std::endl;
-    
+    /*
     int r_local = preprocessing_cl(G,lb);
     int r = r_local;
     while(r_local!=0){r_local=preprocessing_cl(G,lb);r+=r_local;} //repeat until nothing changes
     std::clock_t t_pre = std::clock();
     std::cout<<"Preprocessing removed "<<r <<" vertices"<<std::endl;
     std::cout<<"Time for preprocessing "<< 1000.0 *(t_pre - t_lb) / CLOCKS_PER_SEC<<"ms."<<std::endl;
-    
+    */
     int ub = acyclic_dsatur(G);
     std::clock_t t_ub = std::clock();
     std::cout<<"Upper bound found "<<ub<<std::endl;
-    std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_pre) / CLOCKS_PER_SEC<<"ms."<<std::endl;
+    std::cout<<"Time for computing upper bound "<< 1000.0 *(t_ub - t_lb) / CLOCKS_PER_SEC<<"ms."<<std::endl;
 
     if(ub<=lb){
         std::cout<<"After preprocessing the upper bound is lower or equal to the lower bound."<<std::endl<<"The colouring number is "<< lb<<std::endl;

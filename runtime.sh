@@ -2,7 +2,7 @@
 This does comments. The end does can be anything.
 END
 
-n="20"
+n="10"
 d="5"
 
 rm -f logs_results/log_"$n".csv
@@ -14,7 +14,6 @@ do
     echo "$file" >> logs_results/results_"$n".txt
     ./build/acycle "$file" -prop -rp >> logs_results/results_"$n".txt
     ./build/acycle "$file" -prop -as-tree >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -rp -rc >> logs_results/results_"$n".txt
 done
 
 ./build/check_results logs_results/results_"$n".txt

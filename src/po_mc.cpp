@@ -161,7 +161,7 @@ try{
 		t_finding_cycles = t_finding_cycles + 1000.0*(t_after_cycle - t_before_cycle)/CLOCKS_PER_SEC;
 		counter++;
 	}
-	std::cout<<"Acyclic colouring found!: "<<std::endl;
+	std::cout<<"Acyclic colouring found!"<<std::endl;
 	/*for(int i=0;i<G.ncount();i++){
 		std::cout<<colouring[i]<<", ";
 	}
