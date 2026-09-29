@@ -291,7 +291,7 @@ public:
                 }
             }
         } 
-    std::cout<<"No cycle found though the forst says there should be"<<std::endl;
+    std::cout<<"No cycle found though the forest says there should be"<<std::endl;
     return std::vector<int>();
     }
 
@@ -424,7 +424,7 @@ public:
             //for all neighbors that already have a color
             else if(coloring[w]!=0){
                 forest = std::make_tuple(std::min(coloring[w],col_v),std::max(coloring[w],col_v));
-                //if w is the first neighbor of this color so we just remove v
+                //if w is the first neighbor of this color so we remove v and check if it's neighbors are now disconnected from the rest
                 if(!del[coloring[w]-1]){
                     //std::cout << coloring[w] << " " << col_v << std::endl;
                     forests[forest][v]=0;
@@ -432,6 +432,20 @@ public:
                     coloring[v]=0;
                     std::cout<<"uncolored "<<v<<std::endl;
                     del[coloring[w]-1]=true;
+                    std::vector<int> neighbors_of_w = G.get_neighbor_list()[w];
+                    bool is_connected = false;
+                    for(auto y : neighbors_of_w){
+                        //if there is another vertex in the conn comp
+                        if(forests[forest][y]==forests[forest][w]){
+                            is_connected = true;
+                            break;
+                        }
+                    }
+                    //then also remove w and let the conn comp become empty
+                    if(!is_connected){
+                        forests[forest][w]=0;
+                        std::cout<<w<<" is removed from "<<forests[forest][v]<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;
+                    }
                 }
                 //make a new connected component by splitting the tree
                 else{
@@ -443,6 +457,7 @@ public:
                     forests[forest][w]=i;
                     std::cout<<w<<" is changed to "<<i<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;
                     //find the whole conn comp from there
+                    bool w_is_connected = false;
                     while(!q.empty()){
                         int y = q.back();
                         std::cout<<"y = "<<y<<std::endl;
@@ -451,10 +466,15 @@ public:
                         for(auto z : neighbors_of_y){
                             std::cout<<"z = "<<z<<" in comp "<<forests[forest][z]<<std::endl;
                             if(forests[forest][z]==j){
+                                w_is_connected = true;
                                 q.push(z);
                                 forests[forest][z]=i;
                                 std::cout<<z<<" is changed to "<<i<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;;
                             }
+                        }
+                        if(!w_is_connected){
+                            forests[forest][w]=0;
+                            std::cout<<w<<" is removed from "<<forests[forest][v]<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;
                         }
                         
                     }

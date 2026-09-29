@@ -29,15 +29,6 @@ void Assignment::initialize_solver(Graph::Graph &G, int k, CaDiCaL::Solver *solv
 		}
 		solver->add(0);
 	}
-	//each vertex may only have one colour
-	for(int i=0; i<n;i++){
-		int index=i*k+1;
-		for(int j=0;j<k;j++){
-			for(int l=j+1;l<k;l++){
-				solver->clause(-index-j,-index-l);
-			}
-		}
-	}
 	//adjacent vertices shouldn't have the same colour
 	std::vector<Graph::VertexType> edges = G.elist();
 	for (int i=0;i<G.ecount();i++){
