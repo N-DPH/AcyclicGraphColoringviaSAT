@@ -8,7 +8,7 @@ d="5"
 rm -f logs_results/log_"$n".csv
 echo "category,time" >>logs_results/log_"$n".csv
 rm -f logs_results/results_"$n".txt
-./build/random_generator 10 "$n" 0."$d"
+./build/random_generator 20 "$n" 0."$d"
 for file in random_instances/*
 do
     echo "$file" >> logs_results/results_"$n".txt

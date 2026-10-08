@@ -12,6 +12,7 @@
 #include "po_rc.hpp"
 #include "po_ac.hpp"
 #include "po_sc.hpp"
+#include "rp_fv.hpp"
 #include "rp_rc.hpp"
 #include "rp_sc.hpp"
 #include "prop_rp.hpp"
@@ -73,6 +74,12 @@ try{
             }
             else if(std::string(argv[3])=="-sc"){
                 if(Representatives::solve_sc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[3])=="-fv"){
+                if(Representatives::solve_fv(G,i,cycles_found)==1){
                     colouring_number= i+1;
                     break;
                 }    
