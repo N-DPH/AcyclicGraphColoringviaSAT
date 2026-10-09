@@ -3,7 +3,7 @@ This does comments. The end does can be anything.
 END
 
 n="10"
-d="5"
+d="8"
 
 rm -f logs_results/log_"$n".csv
 echo "category,time" >>logs_results/log_"$n".csv
@@ -16,7 +16,7 @@ do
     ./build/acycle "$file" -prop -as-tree >> logs_results/results_"$n".txt
 done
 
-./build/check_results logs_results/results_"$n".txt
+./build/check_results logs_results/results_"$n".txt >> logs_results/results_"$n".txt
 :<<'END'
 d="5"
 

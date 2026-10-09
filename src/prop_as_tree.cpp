@@ -381,7 +381,7 @@ public:
                 int v = (lit-col)/k;
                 // Update the maps based on the assignment
                 if(lit>0){
-                    //std::cout<<v<< " gets color "<<col<<std::endl;
+                    std::cout<<v<< " gets color "<<col<<std::endl;
                     coloring[v]=col;
                     std::cout<<"color "<<v<<" with "<<col<<std::endl;
                     std::vector<std::vector<int>> new_cycles = grow_forest(v);
@@ -398,14 +398,14 @@ public:
                 }
             }
         }
-        //std::cout << "]" << std::endl;
+        std::cout << "]" << std::endl;
         return;
     }
 
     
 
     void notify_new_decision_level () override {
-        //std::cout << "[act-prop][notify_new_decision_level]" << std::endl;
+        std::cout << "[act-prop][notify_new_decision_level]" << std::endl;
 
         // Create a new decision level on the observed trail
         observed_trail.push(std::vector<int> ());
@@ -418,8 +418,7 @@ public:
         std::vector<int> neighbors =  G.get_neighbor_list()[v];
         for(auto w: neighbors){
             if(coloring[w]==col_v){
-                coloring[v]=0;
-                std::cout<<"uncolored "<<v<<std::endl; 
+                continue;
             }
             //for all neighbors that already have a color
             else if(coloring[w]!=0){
@@ -429,7 +428,6 @@ public:
                     //std::cout << coloring[w] << " " << col_v << std::endl;
                     forests[forest][v]=0;
                     std::cout<<v<<" is removed from "<<forests[forest][v]<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;
-                    coloring[v]=0;
                     std::cout<<"uncolored "<<v<<std::endl;
                     del[coloring[w]-1]=true;
                     std::vector<int> neighbors_of_w = G.get_neighbor_list()[w];
@@ -459,7 +457,7 @@ public:
                     //find the whole conn comp from there
                     bool w_is_connected = false;
                     while(!q.empty()){
-                        int y = q.back();
+                        int y = q.front();
                         std::cout<<"y = "<<y<<std::endl;
                         q.pop();
                         std::vector<int> neighbors_of_y = G.get_neighbor_list()[y];
@@ -468,6 +466,7 @@ public:
                             if(forests[forest][z]==j){
                                 w_is_connected = true;
                                 q.push(z);
+                                std::cout<<z<<" is pushed to queue"<<std::endl;
                                 forests[forest][z]=i;
                                 std::cout<<z<<" is changed to "<<i<<" colors "<<coloring[w]<<", "<<col_v<<std::endl;;
                             }
@@ -481,6 +480,7 @@ public:
                 }
             }
         }
+        coloring[v]=0;
         return;
     }
 

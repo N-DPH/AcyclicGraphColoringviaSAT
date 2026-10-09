@@ -37,20 +37,21 @@ void Representatives::initialize_solver_fv(Graph::Graph &G, int k, CaDiCaL::Solv
 	for(int i=0; i<n;i++){
 		solver->add(i+1);//if i is a representative
 		//std::cout<<i+1<<" ";
-		std::sort(neighbors[i].begin(),neighbors[i].end());
-		int next_neighbor_index = 0;
-		for(int j=0;j<i;j++){
-			if(j != neighbors[i][next_neighbor_index]){
-				//j is not a neighbor of i and smaller so a possible representative
-				solver->add(variables[j][i]);
-				//std::cout<<variables[j][i]<<" ";
-			}
-			else if(next_neighbor_index<neighbors[i].size()-1){
-				next_neighbor_index++;
-			}
-		}
-		solver->add(0);
-		//std::cout<<std::endl;
+        if(!neighbors[i].empty()){
+            std::sort(neighbors[i].begin(),neighbors[i].end());
+            int next_neighbor_index = 0;
+            for(int j=0;j<i;j++){
+                if(j != neighbors[i][next_neighbor_index]){
+                    //j is not a neighbor of i and smaller so a possible representative
+                    solver->add(variables[j][i]);
+                    //std::cout<<variables[j][i]<<" ";
+                }
+                else if(next_neighbor_index<neighbors[i].size()-1){
+                    next_neighbor_index++;
+                }
+            }
+            solver->add(0);
+        }
 	}
 
 	std::vector<int> elist = G.elist();
