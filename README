@@ -7,7 +7,7 @@ to create number many random graphs with size many vertices and given density in
 Usage is './build/check_results result_filename'
 to check if all the colouring numbers found by different variants but saved in the results file match
 
-Usage is './build/acycle filename'
+Usage is './build/acycle filename timeout_in_s -flags'
 to find the colouring number.
 
 The flags for the SAT endcoding are

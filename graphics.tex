@@ -37,4 +37,49 @@
 		\end{axis}
 	\end{tikzpicture}
 	
+	\begin{figure}[H]
+		\centering
+		\pgfplotstableread[col sep=semicolon]{Datasets/survival1.csv}\rawdata
+		\begin{tikzpicture}
+			\begin{axis}[
+				title={Solver Performance Comparison},
+				xlabel={Runtime (Seconds)},
+				ylabel={Ratio of solved instances},
+				xmin=0, xmax=10.05,
+				ymin=0, ymax=1.05,
+				legend pos=north east,
+				width=11cm, height=7cm
+				]
+				
+				\addplot[
+				const plot,
+				color=blue,
+				thick,
+				mark=*,
+				mark options={scale=0.6, fill=blue}
+				] table [/pgf/number format/read comma as period,x =time, y=20 5 -ap-fv] {\rawdata};
+				\addlegendentry{ASS-S}
+				
+				\addplot[
+				const plot,
+				color=green,
+				thick,
+				mark=square*,
+				mark options={scale=0.6, fill=green}
+				] table [/pgf/number format/read comma as period,x=time, y=20 5 -po-fv] {\rawdata};
+				\addlegendentry{POP-I}
+				
+				\addplot[
+				const plot,
+				color=red,
+				thick,
+				mark=triangle*,
+				mark options={scale=0.6, fill=red}
+				] table [/pgf/number format/read comma as period,x=time, y=20 5 -rp-fv] {\rawdata};
+				\addlegendentry{REP}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Multi-solver algorithm survival curve comparison generated from a single CSV data file.}
+	\end{figure}
+	
 \end{document}

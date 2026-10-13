@@ -2,18 +2,23 @@
 This does comments. The end does can be anything.
 END
 
-n="10"
-d="8"
+n="20"
+d="5"
+t="10"
 
 rm -f logs_results/log_"$n".csv
 echo "category,time" >>logs_results/log_"$n".csv
 rm -f logs_results/results_"$n".txt
-./build/random_generator 20 "$n" 0."$d"
+./build/random_generator 100 "$n" 0."$d"
 for file in random_instances/*
 do
     echo "$file" >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -prop -rp >> logs_results/results_"$n".txt
-    ./build/acycle "$file" -prop -as-tree >> logs_results/results_"$n".txt
+    echo -n "$n $d -rp-fv," >> logs_results/log_"$n".csv
+    ./build/acycle "$file" "$t" -rp -fv >> logs_results/results_"$n".txt
+    echo -n "$n $d -po-fv," >> logs_results/log_"$n".csv
+    ./build/acycle "$file" "$t" -po -fv >> logs_results/results_"$n".txt
+    echo -n "$n $d -ap-fv," >> logs_results/log_"$n".csv
+    ./build/acycle "$file" "$t" -as -fv >> logs_results/results_"$n".txt
 done
 
 ./build/check_results logs_results/results_"$n".txt >> logs_results/results_"$n".txt
