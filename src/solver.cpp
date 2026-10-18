@@ -10,6 +10,9 @@
 #include "../cadical/src/cadical.hpp"
 #include "as_fv.hpp"
 #include "as_mc.hpp"
+#include "as_oc.hpp"
+#include "as_rc.hpp"
+#include "as_sc.hpp"
 #include "po_fv.hpp"
 #include "po_mc.hpp"
 #include "po_oc.hpp"
@@ -17,6 +20,8 @@
 #include "po_ac.hpp"
 #include "po_sc.hpp"
 #include "rp_fv.hpp"
+#include "rp_mc.hpp"
+#include "rp_oc.hpp"
 #include "rp_rc.hpp"
 #include "rp_sc.hpp"
 #include "prop_rp.hpp"
@@ -125,8 +130,20 @@ try{
                     break;
                 }    
             }
+            else if(std::string(argv[4])=="-mc"){
+                if(Representatives::solve_mc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
+            else if(std::string(argv[4])=="-oc"){
+                if(Representatives::solve_oc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }    
+            }
             else{
-                throw std::runtime_error("The flag "+std::string(argv[3])+" does not exist");
+                throw std::runtime_error("The flag "+std::string(argv[4])+" does not exist");
             }
         }
         else if(std::string(argv[3])=="-prop"){
@@ -181,7 +198,7 @@ try{
                 }
             }
             else{
-                throw std::runtime_error("The flag "+std::string(argv[3])+" does not exist");
+                throw std::runtime_error("The flag "+std::string(argv[4])+" does not exist");
             }
         }
         else if(std::string(argv[3])=="-as"){
@@ -197,8 +214,26 @@ try{
                     break;
                 }
             }
+            else if(std::string(argv[4])=="-oc"){
+                if(Assignment::solve_oc(G,i)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
+            else if(std::string(argv[4])=="-rc"){
+                if(Assignment::solve_rc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
+            else if(std::string(argv[4])=="-sc"){
+                if(Assignment::solve_sc(G,i,cycles_found)==1){
+                    colouring_number= i+1;
+                    break;
+                }
+            }
             else{
-                throw std::runtime_error("The flag "+std::string(argv[3])+" does not exist");
+                throw std::runtime_error("The flag "+std::string(argv[4])+" does not exist");
             }
         }
         else if(argc==4){

@@ -372,7 +372,21 @@ public:
                 }
             }
         }
-        std::vector<std::vector<int>> new_cycles = find_cycles(colours);
+        std::vector<std::vector<int>> new_cycles;
+        //check if the coloring so far is valid
+        for(int i=0;i<G.ecount();i++){//for all edges check if 
+            if(colours[G.elist()[2*i]]>=0 || colours[G.elist()[2*i+1]]>=0){//if both ends have a color
+                if(colours[G.elist()[2*i]]==colours[G.elist()[2*i+1]]){//and it is the same one
+                    std::vector<int> new_clause;
+                    new_clause.push_back(-variables[representatives[G.elist()[2*i]]][G.elist()[2*i]]);
+                    new_clause.push_back(-variables[representatives[G.elist()[2*i+1]]][G.elist()[2*i+1]]);
+                    cycles.push_back(new_clause);
+                    return 0;
+
+                }
+            }
+        }
+        new_cycles = find_cycles(colours);
         for(auto cycle : new_cycles){
             std::vector<int> new_clause;
             std::vector<int> new_found = {2};
