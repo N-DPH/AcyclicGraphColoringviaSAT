@@ -1,4 +1,5 @@
 CaDiCaL should be installed and the include links in the Makefile updated.
+CliSAT should also be installed and the binary linked in lower_bound.cpp
 Then 'make' creates three executables.
 
 Usage is './build/random_generator number size density'
@@ -25,9 +26,8 @@ for the version of that assignment (note that not all combinations exists):
     -ac for all combinations i.e. alle permutations of a cycle get forbidden
     -sc for first finding and forbidding cycles of length 4
     -rp for the propagator with representative 
-    -rp-tree for the propagator with representative and tree structure
+    -as-tree for the propagator with tree structure
 
     THEY SHOULD BE AT THE END OF THE COMMAND
 
-To get diagram, take the log_n.csv and import it so the xlsx then adapt the pivot table and export as csv and then run latex
-To run in the background nohup ./runtime.sh < /dev/null & 
+It writes it's total runtime to logs_results/log_n.csv
