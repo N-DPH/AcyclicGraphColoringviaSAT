@@ -46,16 +46,17 @@ do
 done
 ./build/check_results logs_results/results_"$n".txt >> logs_results/results_"$n".txt
 echo "Done with the 20 3"
-END
+
 
 t=10
-n=60
+for n in {10..70..5}
+do
     last_successful_value=0
 
     rm -f logs_results/log_"$n".csv
     rm -f logs_results/results_"$n".txt
     # Outer loop: values from 1 to 9
-    for d in {1..9}
+    for d in {1..9};
     do
         success_count=0
         echo "category,time" >>logs_results/log_"$n".csv
@@ -79,3 +80,20 @@ n=60
     done
 
     echo "Execution stopped. The last passing value was: $last_successful_value"
+done
+END
+
+n="30"
+d="5"
+t="800"
+
+rm -f logs_results/log_"$n".csv
+echo "category,time" >>logs_results/log_"$n".csv
+rm -f logs_results/results_"$n".txt
+./build/random_generator 20 "$n" 0."$d"
+for file in random_instances/*
+do
+    echo "$file $t" >> logs_results/results_"$n".txt
+    echo -n "$n $d -as-fv," >> logs_results/log_"$n".csv
+    ./build/acycle "$file" "$t" -rp -sc >> logs_results/results_"$n".txt
+done

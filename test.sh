@@ -1,1 +1,0 @@
-./build/acycle test_inst.col >> logs_results/results_test.txt
